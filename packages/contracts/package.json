@@ -19,7 +19,7 @@
     "chain": "hardhat node --network hardhat --no-deploy",
     "deploy:localhost": "hardhat deploy --network localhost",
     "deploy:sepolia": "hardhat deploy --network sepolia",
-    "verify:sepolia": "hardhat verify --network sepolia",
+    "verify:sepolia": "hardhat verify:sepolia --network sepolia",
     "export-abi": "tsx scripts/export-abi.ts",
     "size-check": "tsx scripts/size-check.ts",
     "ops:new-operator": "tsx scripts/new-operator.ts"

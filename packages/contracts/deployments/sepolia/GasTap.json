@@ -1,0 +1,889 @@
+{
+  "address": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "initialOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "initialOperator",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "initialDripWei",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "initialDailyCapWei",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "AlreadyFunded",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CapTooLarge",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DailyCapReached",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DripTooLarge",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EnforcedPause",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ExpectedPause",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotOperator",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "SendFailed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TooSoon",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "DailyCapSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "DripSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Dripped",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        }
+      ],
+      "name": "OperatorSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Withdrawn",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "COOLDOWN",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_DAILY_CAP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_DRIP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentDay",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dailyCapWei",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "drip",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dripWei",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "badge",
+          "type": "address"
+        }
+      ],
+      "name": "lastDrip",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lastDripAt",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "operator",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setDailyCap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setDrip",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "nextOperator",
+          "type": "address"
+        }
+      ],
+      "name": "setOperator",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "spentToday",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+  "receipt": {
+    "to": null,
+    "from": "0xDbFe5c4d0256D2459bB216caB905999Ca41bE349",
+    "contractAddress": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+    "transactionIndex": 27,
+    "gasUsed": "5054158",
+    "logsBloom": "0x00000000000000000000001000000000008000000000000000800000000000000000800000000000204000000000000008000200000080000000000000000000000000000000000000020000000000000081800008000000000000000000010000000000020000000000000000000800000000000000000000000000000000400000000000000800000040000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000080000000000000000000000000000000000000000000000000000000020000000000800020000000000000000000000800000000000000000000000000000",
+    "blockHash": "0x5a09a5605af0db72209f2bf565169ac689315f9a16a8099b80ba160f1a548bcb",
+    "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+    "logs": [
+      {
+        "transactionIndex": 27,
+        "blockNumber": 12202836,
+        "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+        "address": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000dbfe5c4d0256d2459bb216cab905999ca41be349"
+        ],
+        "data": "0x",
+        "logIndex": 18,
+        "blockHash": "0x5a09a5605af0db72209f2bf565169ac689315f9a16a8099b80ba160f1a548bcb"
+      },
+      {
+        "transactionIndex": 27,
+        "blockNumber": 12202836,
+        "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+        "address": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+        "topics": [
+          "0x99d737e0adf2c449d71890b86772885ec7959b152ddb265f76325b6e68e105d3",
+          "0x000000000000000000000000dbfe5c4d0256d2459bb216cab905999ca41be349"
+        ],
+        "data": "0x",
+        "logIndex": 19,
+        "blockHash": "0x5a09a5605af0db72209f2bf565169ac689315f9a16a8099b80ba160f1a548bcb"
+      },
+      {
+        "transactionIndex": 27,
+        "blockNumber": 12202836,
+        "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+        "address": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+        "topics": [
+          "0xfd023492a913e1a9f4391a876d1d2fc9dc92c3bc6db7a0561fae261be1647b87",
+          "0x0000000000000000000000000000000000000000000000000011c37937e08000"
+        ],
+        "data": "0x",
+        "logIndex": 20,
+        "blockHash": "0x5a09a5605af0db72209f2bf565169ac689315f9a16a8099b80ba160f1a548bcb"
+      },
+      {
+        "transactionIndex": 27,
+        "blockNumber": 12202836,
+        "transactionHash": "0xf8aae8acf825a1114b2366ea0c1bff383b9df6ca316398836a572558dca5e5b3",
+        "address": "0xBEE30A5CD444992887cCFb98D7B1d2832bA15aeb",
+        "topics": [
+          "0xa37a6ea4e624613628ddb29137908d9f87626ed36dc7e626aad25684df094969",
+          "0x00000000000000000000000000000000000000000000000003782dace9d90000"
+        ],
+        "data": "0x",
+        "logIndex": 21,
+        "blockHash": "0x5a09a5605af0db72209f2bf565169ac689315f9a16a8099b80ba160f1a548bcb"
+      }
+    ],
+    "blockNumber": 12202836,
+    "cumulativeGasUsed": "40429194",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xDbFe5c4d0256D2459bB216caB905999Ca41bE349",
+    "0xDbFe5c4d0256D2459bB216caB905999Ca41bE349",
+    "5000000000000000",
+    "250000000000000000"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "2533a40d08d336f60afa0d4eba9573ae",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.27+commit.40a35a09\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"initialOwner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"initialOperator\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"initialDripWei\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"initialDailyCapWei\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"AlreadyFunded\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CapTooLarge\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"DailyCapReached\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"DripTooLarge\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"EnforcedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ExpectedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotOperator\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"SendFailed\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"TooSoon\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DailyCapSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DripSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Dripped\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"OperatorSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Withdrawn\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"COOLDOWN\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_DAILY_CAP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_DRIP\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentDay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dailyCapWei\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"}],\"name\":\"drip\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"dripWei\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"badge\",\"type\":\"address\"}],\"name\":\"lastDrip\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lastDripAt\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"operator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pendingOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"setDailyCap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"setDrip\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nextOperator\",\"type\":\"address\"}],\"name\":\"setOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"spentToday\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"author\":\"noescape contributors\",\"errors\":{\"EnforcedPause()\":[{\"details\":\"The operation failed because the contract is paused.\"}],\"ExpectedPause()\":[{\"details\":\"The operation failed because the contract is not paused.\"}],\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}]},\"events\":{\"DailyCapSet(uint256)\":{\"params\":{\"amount\":\"New daily cap.\"}},\"DripSet(uint256)\":{\"params\":{\"amount\":\"New drip amount.\"}},\"Dripped(address,uint256)\":{\"params\":{\"amount\":\"Drip amount.\",\"to\":\"Recipient badge.\"}},\"OperatorSet(address)\":{\"params\":{\"operator\":\"New operator.\"}},\"Paused(address)\":{\"details\":\"Emitted when the pause is triggered by `account`.\"},\"Unpaused(address)\":{\"details\":\"Emitted when the pause is lifted by `account`.\"},\"Withdrawn(address,uint256)\":{\"params\":{\"amount\":\"Withdrawal amount.\",\"to\":\"Recipient.\"}}},\"kind\":\"dev\",\"methods\":{\"acceptOwnership()\":{\"details\":\"The new owner accepts the ownership transfer.\"},\"constructor\":{\"params\":{\"initialDailyCapWei\":\"Maximum amount spent per UTC day.\",\"initialDripWei\":\"Amount sent per funded badge.\",\"initialOperator\":\"The only account allowed to drip.\",\"initialOwner\":\"The owner allowed to configure and withdraw.\"}},\"drip(address)\":{\"params\":{\"to\":\"Recipient badge address.\"}},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"paused()\":{\"details\":\"Returns true if the contract is paused, and false otherwise.\"},\"pendingOwner()\":{\"details\":\"Returns the address of the pending owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"setDailyCap(uint256)\":{\"params\":{\"amount\":\"New cap, at most 1 ETH.\"}},\"setDrip(uint256)\":{\"params\":{\"amount\":\"New amount, at most 0.02 ETH.\"}},\"setOperator(address)\":{\"params\":{\"nextOperator\":\"New operator address.\"}},\"transferOwnership(address)\":{\"details\":\"Starts the ownership transfer of the contract to a new account. Replaces the pending transfer if there is one. Can only be called by the current owner. Setting `newOwner` to the zero address is allowed; this can be used to cancel an initiated ownership transfer.\"},\"withdraw(address,uint256)\":{\"params\":{\"amount\":\"Amount to withdraw.\",\"to\":\"Recipient address.\"}}},\"title\":\"GasTap\",\"version\":1},\"userdoc\":{\"events\":{\"DailyCapSet(uint256)\":{\"notice\":\"The daily cap changed.\"},\"DripSet(uint256)\":{\"notice\":\"The drip amount changed.\"},\"Dripped(address,uint256)\":{\"notice\":\"A badge received fuel.\"},\"OperatorSet(address)\":{\"notice\":\"The operator changed.\"},\"Withdrawn(address,uint256)\":{\"notice\":\"The owner withdrew ETH.\"}},\"kind\":\"user\",\"methods\":{\"COOLDOWN()\":{\"notice\":\"Minimum time between drips to one badge.\"},\"MAX_DAILY_CAP()\":{\"notice\":\"Maximum spend per UTC day.\"},\"MAX_DRIP()\":{\"notice\":\"Maximum drip per badge.\"},\"constructor\":{\"notice\":\"Creates the tap with separate owner and operator roles.\"},\"currentDay()\":{\"notice\":\"UTC day index used for the current spending window.\"},\"dailyCapWei()\":{\"notice\":\"Maximum amount spent per UTC day.\"},\"drip(address)\":{\"notice\":\"Sends one drip to a badge that is low on fuel.\"},\"dripWei()\":{\"notice\":\"Amount sent per funded badge.\"},\"lastDrip(address)\":{\"notice\":\"Last drip timestamp for each badge.\"},\"operator()\":{\"notice\":\"Account allowed to issue drips.\"},\"pause()\":{\"notice\":\"Pauses new drips.\"},\"setDailyCap(uint256)\":{\"notice\":\"Changes the UTC daily spending cap.\"},\"setDrip(uint256)\":{\"notice\":\"Changes the per-badge drip amount.\"},\"setOperator(address)\":{\"notice\":\"Replaces the limited operator account.\"},\"spentToday()\":{\"notice\":\"Returns the amount spent in the current UTC day.\"},\"unpause()\":{\"notice\":\"Resumes new drips.\"},\"withdraw(address,uint256)\":{\"notice\":\"Withdraws ETH to an owner-selected address.\"}},\"notice\":\"A capped ETH drip for guest detectives, controlled by a limited operator.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/GasTap.sol\":\"GasTap\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * The initial owner is set to the address provided by the deployer. This can\\n * later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    /**\\n     * @dev The caller account is not authorized to perform an operation.\\n     */\\n    error OwnableUnauthorizedAccount(address account);\\n\\n    /**\\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\\n     */\\n    error OwnableInvalidOwner(address owner);\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\\n     */\\n    constructor(address initialOwner) {\\n        if (initialOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(initialOwner);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        _checkOwner();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if the sender is not the owner.\\n     */\\n    function _checkOwner() internal view virtual {\\n        if (owner() != _msgSender()) {\\n            revert OwnableUnauthorizedAccount(_msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby disabling any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        if (newOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\"},\"@openzeppelin/contracts/access/Ownable2Step.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.1.0) (access/Ownable2Step.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Ownable} from \\\"./Ownable.sol\\\";\\n\\n/**\\n * @dev Contract module which provides access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This extension of the {Ownable} contract includes a two-step mechanism to transfer\\n * ownership, where the new owner must call {acceptOwnership} in order to replace the\\n * old one. This can help prevent common mistakes, such as transfers of ownership to\\n * incorrect accounts, or to contracts that are unable to interact with the\\n * permission system.\\n *\\n * The initial owner is specified at deployment time in the constructor for `Ownable`. This\\n * can later be changed with {transferOwnership} and {acceptOwnership}.\\n *\\n * This module is used through inheritance. It will make available all functions\\n * from parent (Ownable).\\n */\\nabstract contract Ownable2Step is Ownable {\\n    address private _pendingOwner;\\n\\n    event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Returns the address of the pending owner.\\n     */\\n    function pendingOwner() public view virtual returns (address) {\\n        return _pendingOwner;\\n    }\\n\\n    /**\\n     * @dev Starts the ownership transfer of the contract to a new account. Replaces the pending transfer if there is one.\\n     * Can only be called by the current owner.\\n     *\\n     * Setting `newOwner` to the zero address is allowed; this can be used to cancel an initiated ownership transfer.\\n     */\\n    function transferOwnership(address newOwner) public virtual override onlyOwner {\\n        _pendingOwner = newOwner;\\n        emit OwnershipTransferStarted(owner(), newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`) and deletes any pending owner.\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual override {\\n        delete _pendingOwner;\\n        super._transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev The new owner accepts the ownership transfer.\\n     */\\n    function acceptOwnership() public virtual {\\n        address sender = _msgSender();\\n        if (pendingOwner() != sender) {\\n            revert OwnableUnauthorizedAccount(sender);\\n        }\\n        _transferOwnership(sender);\\n    }\\n}\\n\",\"keccak256\":\"0xdcad8898fda432696597752e8ec361b87d85c82cb258115427af006dacf7128c\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Pausable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.3.0) (utils/Pausable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which allows children to implement an emergency stop\\n * mechanism that can be triggered by an authorized account.\\n *\\n * This module is used through inheritance. It will make available the\\n * modifiers `whenNotPaused` and `whenPaused`, which can be applied to\\n * the functions of your contract. Note that they will not be pausable by\\n * simply including this module, only once the modifiers are put in place.\\n */\\nabstract contract Pausable is Context {\\n    bool private _paused;\\n\\n    /**\\n     * @dev Emitted when the pause is triggered by `account`.\\n     */\\n    event Paused(address account);\\n\\n    /**\\n     * @dev Emitted when the pause is lifted by `account`.\\n     */\\n    event Unpaused(address account);\\n\\n    /**\\n     * @dev The operation failed because the contract is paused.\\n     */\\n    error EnforcedPause();\\n\\n    /**\\n     * @dev The operation failed because the contract is not paused.\\n     */\\n    error ExpectedPause();\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is not paused.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must not be paused.\\n     */\\n    modifier whenNotPaused() {\\n        _requireNotPaused();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is paused.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must be paused.\\n     */\\n    modifier whenPaused() {\\n        _requirePaused();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the contract is paused, and false otherwise.\\n     */\\n    function paused() public view virtual returns (bool) {\\n        return _paused;\\n    }\\n\\n    /**\\n     * @dev Throws if the contract is paused.\\n     */\\n    function _requireNotPaused() internal view virtual {\\n        if (paused()) {\\n            revert EnforcedPause();\\n        }\\n    }\\n\\n    /**\\n     * @dev Throws if the contract is not paused.\\n     */\\n    function _requirePaused() internal view virtual {\\n        if (!paused()) {\\n            revert ExpectedPause();\\n        }\\n    }\\n\\n    /**\\n     * @dev Triggers stopped state.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must not be paused.\\n     */\\n    function _pause() internal virtual whenNotPaused {\\n        _paused = true;\\n        emit Paused(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns to normal state.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must be paused.\\n     */\\n    function _unpause() internal virtual whenPaused {\\n        _paused = false;\\n        emit Unpaused(_msgSender());\\n    }\\n}\\n\",\"keccak256\":\"0xdb484371dfbb848cb6f5d70464e9ac9b2900e4164ead76bbce4fef0b44bcc68f\",\"license\":\"MIT\"},\"contracts/GasTap.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.27;\\n\\nimport {Ownable} from \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport {Ownable2Step} from \\\"@openzeppelin/contracts/access/Ownable2Step.sol\\\";\\nimport {Pausable} from \\\"@openzeppelin/contracts/utils/Pausable.sol\\\";\\n\\n/// @title GasTap\\n/// @author noescape contributors\\n/// @notice A capped ETH drip for guest detectives, controlled by a limited operator.\\ncontract GasTap is Ownable2Step, Pausable {\\n    /// @notice Maximum drip per badge.\\n    uint256 public constant MAX_DRIP = 0.02 ether;\\n    /// @notice Maximum spend per UTC day.\\n    uint256 public constant MAX_DAILY_CAP = 1 ether;\\n    /// @notice Minimum time between drips to one badge.\\n    uint256 public constant COOLDOWN = 1 days;\\n\\n    /// @notice Account allowed to issue drips.\\n    address public operator;\\n    /// @notice Amount sent per funded badge.\\n    uint256 public dripWei;\\n    /// @notice Maximum amount spent per UTC day.\\n    uint256 public dailyCapWei;\\n    /// @notice UTC day index used for the current spending window.\\n    uint256 public currentDay;\\n    uint256 private _spentToday;\\n    /// @notice Last drip timestamp for each badge.\\n    mapping(address badge => uint256 lastDripAt) public lastDrip;\\n\\n    error NotOperator();\\n    error TooSoon();\\n    error AlreadyFunded();\\n    error DailyCapReached();\\n    error DripTooLarge();\\n    error CapTooLarge();\\n    error SendFailed();\\n\\n    /// @notice A badge received fuel.\\n    /// @param to Recipient badge.\\n    /// @param amount Drip amount.\\n    event Dripped(address indexed to, uint256 indexed amount);\\n    /// @notice The operator changed.\\n    /// @param operator New operator.\\n    event OperatorSet(address indexed operator);\\n    /// @notice The drip amount changed.\\n    /// @param amount New drip amount.\\n    event DripSet(uint256 indexed amount);\\n    /// @notice The daily cap changed.\\n    /// @param amount New daily cap.\\n    event DailyCapSet(uint256 indexed amount);\\n    /// @notice The owner withdrew ETH.\\n    /// @param to Recipient.\\n    /// @param amount Withdrawal amount.\\n    event Withdrawn(address indexed to, uint256 indexed amount);\\n\\n    /// @notice Creates the tap with separate owner and operator roles.\\n    /// @param initialOwner The owner allowed to configure and withdraw.\\n    /// @param initialOperator The only account allowed to drip.\\n    /// @param initialDripWei Amount sent per funded badge.\\n    /// @param initialDailyCapWei Maximum amount spent per UTC day.\\n    constructor(\\n        address initialOwner,\\n        address initialOperator,\\n        uint256 initialDripWei,\\n        uint256 initialDailyCapWei\\n    ) Ownable(initialOwner) {\\n        if (initialDripWei > MAX_DRIP) revert DripTooLarge();\\n        if (initialDailyCapWei > MAX_DAILY_CAP) revert CapTooLarge();\\n        operator = initialOperator;\\n        dripWei = initialDripWei;\\n        dailyCapWei = initialDailyCapWei;\\n        currentDay = block.timestamp / 1 days;\\n        emit OperatorSet(initialOperator);\\n        emit DripSet(initialDripWei);\\n        emit DailyCapSet(initialDailyCapWei);\\n    }\\n\\n    modifier onlyOperator() {\\n        if (msg.sender != operator) revert NotOperator();\\n        _;\\n    }\\n\\n    function _today() internal view returns (uint256) {\\n        return block.timestamp / 1 days;\\n    }\\n\\n    /// @notice Returns the amount spent in the current UTC day.\\n    function spentToday() public view returns (uint256) {\\n        return currentDay == _today() ? _spentToday : 0;\\n    }\\n\\n    /// @notice Sends one drip to a badge that is low on fuel.\\n    /// @param to Recipient badge address.\\n    function drip(address to) external onlyOperator whenNotPaused {\\n        uint256 today = _today();\\n        if (currentDay != today) {\\n            currentDay = today;\\n            _spentToday = 0;\\n        }\\n        if (block.timestamp < lastDrip[to] + COOLDOWN) revert TooSoon();\\n        // solhint-disable-next-line gas-strict-inequalities\\n        if (to.balance >= dripWei / 2) revert AlreadyFunded();\\n        if (_spentToday + dripWei > dailyCapWei) revert DailyCapReached();\\n\\n        lastDrip[to] = block.timestamp;\\n        _spentToday += dripWei;\\n        (bool sent, ) = to.call{value: dripWei}(\\\"\\\");\\n        if (!sent) revert SendFailed();\\n        emit Dripped(to, dripWei);\\n    }\\n\\n    /// @notice Replaces the limited operator account.\\n    /// @param nextOperator New operator address.\\n    function setOperator(address nextOperator) external onlyOwner {\\n        operator = nextOperator;\\n        emit OperatorSet(nextOperator);\\n    }\\n\\n    /// @notice Changes the per-badge drip amount.\\n    /// @param amount New amount, at most 0.02 ETH.\\n    function setDrip(uint256 amount) external onlyOwner {\\n        if (amount > MAX_DRIP) revert DripTooLarge();\\n        dripWei = amount;\\n        emit DripSet(amount);\\n    }\\n\\n    /// @notice Changes the UTC daily spending cap.\\n    /// @param amount New cap, at most 1 ETH.\\n    function setDailyCap(uint256 amount) external onlyOwner {\\n        if (amount > MAX_DAILY_CAP) revert CapTooLarge();\\n        dailyCapWei = amount;\\n        emit DailyCapSet(amount);\\n    }\\n\\n    /// @notice Pauses new drips.\\n    function pause() external onlyOwner {\\n        _pause();\\n    }\\n\\n    /// @notice Resumes new drips.\\n    function unpause() external onlyOwner {\\n        _unpause();\\n    }\\n\\n    /// @notice Withdraws ETH to an owner-selected address.\\n    /// @param to Recipient address.\\n    /// @param amount Amount to withdraw.\\n    function withdraw(address to, uint256 amount) external onlyOwner {\\n        (bool sent, ) = to.call{value: amount}(\\\"\\\");\\n        if (!sent) revert SendFailed();\\n        emit Withdrawn(to, amount);\\n    }\\n\\n    /// @notice Accepts ETH funding from the owner or guests.\\n    receive() external payable {}\\n}\\n\",\"keccak256\":\"0xbe1ece6aa1cebbc0e236271d2d556ebc8366bf98608510fb5679c6351c1de39d\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561000f575f5ffd5b50604051610d3c380380610d3c83398101604081905261002e91610202565b836001600160a01b03811661005c57604051631e4fbdf760e01b81525f600482015260240160405180910390fd5b6100658161017c565b5066470de4df82000082111561008e57604051630802d7ff60e21b815260040160405180910390fd5b670de0b6b3a76400008111156100b757604051630123fa5360e01b815260040160405180910390fd5b600280546001600160a01b0319166001600160a01b038516179055600382905560048190556100e96201518042610242565b6005556040516001600160a01b038416907f99d737e0adf2c449d71890b86772885ec7959b152ddb265f76325b6e68e105d3905f90a260405182907ffd023492a913e1a9f4391a876d1d2fc9dc92c3bc6db7a0561fae261be1647b87905f90a260405181907fa37a6ea4e624613628ddb29137908d9f87626ed36dc7e626aad25684df094969905f90a250505050610261565b600180546001600160a01b031916905561019581610198565b50565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b80516001600160a01b03811681146101fd575f5ffd5b919050565b5f5f5f5f60808587031215610215575f5ffd5b61021e856101e7565b935061022c602086016101e7565b6040860151606090960151949790965092505050565b5f8261025c57634e487b7160e01b5f52601260045260245ffd5b500490565b610ace8061026e5f395ff3fe608060405260043610610134575f3560e01c806379ba5097116100a8578063b3ab15fb1161006d578063b3ab15fb14610318578063e30c397814610337578063eb03879714610354578063f059cf2b1461036e578063f2fde38b14610382578063f3fef3a3146103a1575f5ffd5b806379ba5097146102a95780638456cb59146102bd5780638da5cb5b146102d1578063a2724a4d146102ed578063ad63a15214610303575f5ffd5b8063570ca735116100f9578063570ca735146101ec5780635c9302c9146102235780635c975abb146102385780635f2aeb161461026157806367a5cd0614610276578063715018a614610295575f5ffd5b80630840a44a1461013f5780630935f004146101605780633f4ba83a1461019e57806347de11c2146101b257806354f430e8146101d1575f5ffd5b3661013b57005b5f5ffd5b34801561014a575f5ffd5b5061015e610159366004610a03565b6103c0565b005b34801561016b575f5ffd5b5061018b61017a366004610a35565b60076020525f908152604090205481565b6040519081526020015b60405180910390f35b3480156101a9575f5ffd5b5061015e610423565b3480156101bd575f5ffd5b5061015e6101cc366004610a03565b610435565b3480156101dc575f5ffd5b5061018b670de0b6b3a764000081565b3480156101f7575f5ffd5b5060025461020b906001600160a01b031681565b6040516001600160a01b039091168152602001610195565b34801561022e575f5ffd5b5061018b60055481565b348015610243575f5ffd5b50600154600160a01b900460ff166040519015158152602001610195565b34801561026c575f5ffd5b5061018b60045481565b348015610281575f5ffd5b5061015e610290366004610a35565b610497565b3480156102a0575f5ffd5b5061015e610678565b3480156102b4575f5ffd5b5061015e610689565b3480156102c8575f5ffd5b5061015e6106d2565b3480156102dc575f5ffd5b505f546001600160a01b031661020b565b3480156102f8575f5ffd5b5061018b6201518081565b34801561030e575f5ffd5b5061018b60035481565b348015610323575f5ffd5b5061015e610332366004610a35565b6106e2565b348015610342575f5ffd5b506001546001600160a01b031661020b565b34801561035f575f5ffd5b5061018b66470de4df82000081565b348015610379575f5ffd5b5061018b610733565b34801561038d575f5ffd5b5061015e61039c366004610a35565b610752565b3480156103ac575f5ffd5b5061015e6103bb366004610a55565b6107c2565b6103c8610874565b670de0b6b3a76400008111156103f157604051630123fa5360e01b815260040160405180910390fd5b600481905560405181907fa37a6ea4e624613628ddb29137908d9f87626ed36dc7e626aad25684df094969905f90a250565b61042b610874565b6104336108a0565b565b61043d610874565b66470de4df82000081111561046557604051630802d7ff60e21b815260040160405180910390fd5b600381905560405181907ffd023492a913e1a9f4391a876d1d2fc9dc92c3bc6db7a0561fae261be1647b87905f90a250565b6002546001600160a01b031633146104c257604051631f0853c160e21b815260040160405180910390fd5b6104ca6108f5565b5f6104d3610920565b905080600554146104e85760058190555f6006555b6001600160a01b0382165f9081526007602052604090205461050e906201518090610a7d565b42101561052e57604051636fed7d8560e01b815260040160405180910390fd5b600260035461053d9190610aa2565b826001600160a01b0316311061056657604051635adf638760e01b815260040160405180910390fd5b6004546003546006546105799190610a7d565b11156105985760405163a17f846760e01b815260040160405180910390fd5b6001600160a01b0382165f90815260076020526040812042905560035460068054919290916105c8908490610a7d565b90915550506003546040515f916001600160a01b038516918381818185875af1925050503d805f8114610616576040519150601f19603f3d011682016040523d82523d5f602084013e61061b565b606091505b505090508061063d576040516381063e5160e01b815260040160405180910390fd5b6003546040516001600160a01b038516907f0daf449977d5acafa35195e10b3eb92f97839892a6653afaba222379b58d8a9b905f90a3505050565b610680610874565b6104335f61092e565b60015433906001600160a01b031681146106c65760405163118cdaa760e01b81526001600160a01b03821660048201526024015b60405180910390fd5b6106cf8161092e565b50565b6106da610874565b610433610947565b6106ea610874565b600280546001600160a01b0319166001600160a01b0383169081179091556040517f99d737e0adf2c449d71890b86772885ec7959b152ddb265f76325b6e68e105d3905f90a250565b5f61073c610920565b6005541461074957505f90565b6006545b905090565b61075a610874565b600180546001600160a01b0383166001600160a01b0319909116811790915561078a5f546001600160a01b031690565b6001600160a01b03167f38d16b8cac22d99fc7c124b9cd0de2d3fa1faef420bfe791d8c362d765e2270060405160405180910390a350565b6107ca610874565b5f826001600160a01b0316826040515f6040518083038185875af1925050503d805f8114610813576040519150601f19603f3d011682016040523d82523d5f602084013e610818565b606091505b505090508061083a576040516381063e5160e01b815260040160405180910390fd5b60405182906001600160a01b038516907f7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d5905f90a3505050565b5f546001600160a01b031633146104335760405163118cdaa760e01b81523360048201526024016106bd565b6108a861098a565b6001805460ff60a01b191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa335b6040516001600160a01b03909116815260200160405180910390a1565b600154600160a01b900460ff16156104335760405163d93c066560e01b815260040160405180910390fd5b5f61074d6201518042610aa2565b600180546001600160a01b03191690556106cf816109b4565b61094f6108f5565b6001805460ff60a01b1916600160a01b1790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a2586108d83390565b600154600160a01b900460ff1661043357604051638dfc202b60e01b815260040160405180910390fd5b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b5f60208284031215610a13575f5ffd5b5035919050565b80356001600160a01b0381168114610a30575f5ffd5b919050565b5f60208284031215610a45575f5ffd5b610a4e82610a1a565b9392505050565b5f5f60408385031215610a66575f5ffd5b610a6f83610a1a565b946020939093013593505050565b80820180821115610a9c57634e487b7160e01b5f52601160045260245ffd5b92915050565b5f82610abc57634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c634300081b000a",
+  "deployedBytecode": "0x608060405260043610610134575f3560e01c806379ba5097116100a8578063b3ab15fb1161006d578063b3ab15fb14610318578063e30c397814610337578063eb03879714610354578063f059cf2b1461036e578063f2fde38b14610382578063f3fef3a3146103a1575f5ffd5b806379ba5097146102a95780638456cb59146102bd5780638da5cb5b146102d1578063a2724a4d146102ed578063ad63a15214610303575f5ffd5b8063570ca735116100f9578063570ca735146101ec5780635c9302c9146102235780635c975abb146102385780635f2aeb161461026157806367a5cd0614610276578063715018a614610295575f5ffd5b80630840a44a1461013f5780630935f004146101605780633f4ba83a1461019e57806347de11c2146101b257806354f430e8146101d1575f5ffd5b3661013b57005b5f5ffd5b34801561014a575f5ffd5b5061015e610159366004610a03565b6103c0565b005b34801561016b575f5ffd5b5061018b61017a366004610a35565b60076020525f908152604090205481565b6040519081526020015b60405180910390f35b3480156101a9575f5ffd5b5061015e610423565b3480156101bd575f5ffd5b5061015e6101cc366004610a03565b610435565b3480156101dc575f5ffd5b5061018b670de0b6b3a764000081565b3480156101f7575f5ffd5b5060025461020b906001600160a01b031681565b6040516001600160a01b039091168152602001610195565b34801561022e575f5ffd5b5061018b60055481565b348015610243575f5ffd5b50600154600160a01b900460ff166040519015158152602001610195565b34801561026c575f5ffd5b5061018b60045481565b348015610281575f5ffd5b5061015e610290366004610a35565b610497565b3480156102a0575f5ffd5b5061015e610678565b3480156102b4575f5ffd5b5061015e610689565b3480156102c8575f5ffd5b5061015e6106d2565b3480156102dc575f5ffd5b505f546001600160a01b031661020b565b3480156102f8575f5ffd5b5061018b6201518081565b34801561030e575f5ffd5b5061018b60035481565b348015610323575f5ffd5b5061015e610332366004610a35565b6106e2565b348015610342575f5ffd5b506001546001600160a01b031661020b565b34801561035f575f5ffd5b5061018b66470de4df82000081565b348015610379575f5ffd5b5061018b610733565b34801561038d575f5ffd5b5061015e61039c366004610a35565b610752565b3480156103ac575f5ffd5b5061015e6103bb366004610a55565b6107c2565b6103c8610874565b670de0b6b3a76400008111156103f157604051630123fa5360e01b815260040160405180910390fd5b600481905560405181907fa37a6ea4e624613628ddb29137908d9f87626ed36dc7e626aad25684df094969905f90a250565b61042b610874565b6104336108a0565b565b61043d610874565b66470de4df82000081111561046557604051630802d7ff60e21b815260040160405180910390fd5b600381905560405181907ffd023492a913e1a9f4391a876d1d2fc9dc92c3bc6db7a0561fae261be1647b87905f90a250565b6002546001600160a01b031633146104c257604051631f0853c160e21b815260040160405180910390fd5b6104ca6108f5565b5f6104d3610920565b905080600554146104e85760058190555f6006555b6001600160a01b0382165f9081526007602052604090205461050e906201518090610a7d565b42101561052e57604051636fed7d8560e01b815260040160405180910390fd5b600260035461053d9190610aa2565b826001600160a01b0316311061056657604051635adf638760e01b815260040160405180910390fd5b6004546003546006546105799190610a7d565b11156105985760405163a17f846760e01b815260040160405180910390fd5b6001600160a01b0382165f90815260076020526040812042905560035460068054919290916105c8908490610a7d565b90915550506003546040515f916001600160a01b038516918381818185875af1925050503d805f8114610616576040519150601f19603f3d011682016040523d82523d5f602084013e61061b565b606091505b505090508061063d576040516381063e5160e01b815260040160405180910390fd5b6003546040516001600160a01b038516907f0daf449977d5acafa35195e10b3eb92f97839892a6653afaba222379b58d8a9b905f90a3505050565b610680610874565b6104335f61092e565b60015433906001600160a01b031681146106c65760405163118cdaa760e01b81526001600160a01b03821660048201526024015b60405180910390fd5b6106cf8161092e565b50565b6106da610874565b610433610947565b6106ea610874565b600280546001600160a01b0319166001600160a01b0383169081179091556040517f99d737e0adf2c449d71890b86772885ec7959b152ddb265f76325b6e68e105d3905f90a250565b5f61073c610920565b6005541461074957505f90565b6006545b905090565b61075a610874565b600180546001600160a01b0383166001600160a01b0319909116811790915561078a5f546001600160a01b031690565b6001600160a01b03167f38d16b8cac22d99fc7c124b9cd0de2d3fa1faef420bfe791d8c362d765e2270060405160405180910390a350565b6107ca610874565b5f826001600160a01b0316826040515f6040518083038185875af1925050503d805f8114610813576040519150601f19603f3d011682016040523d82523d5f602084013e610818565b606091505b505090508061083a576040516381063e5160e01b815260040160405180910390fd5b60405182906001600160a01b038516907f7084f5476618d8e60b11ef0d7d3f06914655adb8793e28ff7f018d4c76d505d5905f90a3505050565b5f546001600160a01b031633146104335760405163118cdaa760e01b81523360048201526024016106bd565b6108a861098a565b6001805460ff60a01b191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa335b6040516001600160a01b03909116815260200160405180910390a1565b600154600160a01b900460ff16156104335760405163d93c066560e01b815260040160405180910390fd5b5f61074d6201518042610aa2565b600180546001600160a01b03191690556106cf816109b4565b61094f6108f5565b6001805460ff60a01b1916600160a01b1790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a2586108d83390565b600154600160a01b900460ff1661043357604051638dfc202b60e01b815260040160405180910390fd5b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b5f60208284031215610a13575f5ffd5b5035919050565b80356001600160a01b0381168114610a30575f5ffd5b919050565b5f60208284031215610a45575f5ffd5b610a4e82610a1a565b9392505050565b5f5f60408385031215610a66575f5ffd5b610a6f83610a1a565b946020939093013593505050565b80820180821115610a9c57634e487b7160e01b5f52601160045260245ffd5b92915050565b5f82610abc57634e487b7160e01b5f52601260045260245ffd5b50049056fea164736f6c634300081b000a",
+  "devdoc": {
+    "author": "noescape contributors",
+    "errors": {
+      "EnforcedPause()": [
+        {
+          "details": "The operation failed because the contract is paused."
+        }
+      ],
+      "ExpectedPause()": [
+        {
+          "details": "The operation failed because the contract is not paused."
+        }
+      ],
+      "OwnableInvalidOwner(address)": [
+        {
+          "details": "The owner is not a valid owner account. (eg. `address(0)`)"
+        }
+      ],
+      "OwnableUnauthorizedAccount(address)": [
+        {
+          "details": "The caller account is not authorized to perform an operation."
+        }
+      ]
+    },
+    "events": {
+      "DailyCapSet(uint256)": {
+        "params": {
+          "amount": "New daily cap."
+        }
+      },
+      "DripSet(uint256)": {
+        "params": {
+          "amount": "New drip amount."
+        }
+      },
+      "Dripped(address,uint256)": {
+        "params": {
+          "amount": "Drip amount.",
+          "to": "Recipient badge."
+        }
+      },
+      "OperatorSet(address)": {
+        "params": {
+          "operator": "New operator."
+        }
+      },
+      "Paused(address)": {
+        "details": "Emitted when the pause is triggered by `account`."
+      },
+      "Unpaused(address)": {
+        "details": "Emitted when the pause is lifted by `account`."
+      },
+      "Withdrawn(address,uint256)": {
+        "params": {
+          "amount": "Withdrawal amount.",
+          "to": "Recipient."
+        }
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "acceptOwnership()": {
+        "details": "The new owner accepts the ownership transfer."
+      },
+      "constructor": {
+        "params": {
+          "initialDailyCapWei": "Maximum amount spent per UTC day.",
+          "initialDripWei": "Amount sent per funded badge.",
+          "initialOperator": "The only account allowed to drip.",
+          "initialOwner": "The owner allowed to configure and withdraw."
+        }
+      },
+      "drip(address)": {
+        "params": {
+          "to": "Recipient badge address."
+        }
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "paused()": {
+        "details": "Returns true if the contract is paused, and false otherwise."
+      },
+      "pendingOwner()": {
+        "details": "Returns the address of the pending owner."
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+      },
+      "setDailyCap(uint256)": {
+        "params": {
+          "amount": "New cap, at most 1 ETH."
+        }
+      },
+      "setDrip(uint256)": {
+        "params": {
+          "amount": "New amount, at most 0.02 ETH."
+        }
+      },
+      "setOperator(address)": {
+        "params": {
+          "nextOperator": "New operator address."
+        }
+      },
+      "transferOwnership(address)": {
+        "details": "Starts the ownership transfer of the contract to a new account. Replaces the pending transfer if there is one. Can only be called by the current owner. Setting `newOwner` to the zero address is allowed; this can be used to cancel an initiated ownership transfer."
+      },
+      "withdraw(address,uint256)": {
+        "params": {
+          "amount": "Amount to withdraw.",
+          "to": "Recipient address."
+        }
+      }
+    },
+    "title": "GasTap",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "DailyCapSet(uint256)": {
+        "notice": "The daily cap changed."
+      },
+      "DripSet(uint256)": {
+        "notice": "The drip amount changed."
+      },
+      "Dripped(address,uint256)": {
+        "notice": "A badge received fuel."
+      },
+      "OperatorSet(address)": {
+        "notice": "The operator changed."
+      },
+      "Withdrawn(address,uint256)": {
+        "notice": "The owner withdrew ETH."
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "COOLDOWN()": {
+        "notice": "Minimum time between drips to one badge."
+      },
+      "MAX_DAILY_CAP()": {
+        "notice": "Maximum spend per UTC day."
+      },
+      "MAX_DRIP()": {
+        "notice": "Maximum drip per badge."
+      },
+      "constructor": {
+        "notice": "Creates the tap with separate owner and operator roles."
+      },
+      "currentDay()": {
+        "notice": "UTC day index used for the current spending window."
+      },
+      "dailyCapWei()": {
+        "notice": "Maximum amount spent per UTC day."
+      },
+      "drip(address)": {
+        "notice": "Sends one drip to a badge that is low on fuel."
+      },
+      "dripWei()": {
+        "notice": "Amount sent per funded badge."
+      },
+      "lastDrip(address)": {
+        "notice": "Last drip timestamp for each badge."
+      },
+      "operator()": {
+        "notice": "Account allowed to issue drips."
+      },
+      "pause()": {
+        "notice": "Pauses new drips."
+      },
+      "setDailyCap(uint256)": {
+        "notice": "Changes the UTC daily spending cap."
+      },
+      "setDrip(uint256)": {
+        "notice": "Changes the per-badge drip amount."
+      },
+      "setOperator(address)": {
+        "notice": "Replaces the limited operator account."
+      },
+      "spentToday()": {
+        "notice": "Returns the amount spent in the current UTC day."
+      },
+      "unpause()": {
+        "notice": "Resumes new drips."
+      },
+      "withdraw(address,uint256)": {
+        "notice": "Withdraws ETH to an owner-selected address."
+      }
+    },
+    "notice": "A capped ETH drip for guest detectives, controlled by a limited operator.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 42164,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 42312,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "_pendingOwner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 42428,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "_paused",
+        "offset": 20,
+        "slot": "1",
+        "type": "t_bool"
+      },
+      {
+        "astId": 42555,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "operator",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 42558,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "dripWei",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 42561,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "dailyCapWei",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 42564,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "currentDay",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 42566,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "_spentToday",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 42571,
+        "contract": "contracts/GasTap.sol:GasTap",
+        "label": "lastDrip",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_address,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

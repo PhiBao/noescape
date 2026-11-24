@@ -10,6 +10,7 @@ import { vars } from "hardhat/config";
 import "solidity-coverage";
 
 import "./tasks/spike";
+import "./tasks/verify";
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -17,9 +18,7 @@ const config: HardhatUserConfig = {
     deployer: 0,
   },
   etherscan: {
-    apiKey: {
-      sepolia: vars.get("ETHERSCAN_API_KEY", ""),
-    },
+    apiKey: vars.get("ETHERSCAN_API_KEY", ""),
   },
   sourcify: {
     enabled: true,
