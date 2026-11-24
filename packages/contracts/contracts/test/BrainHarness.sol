@@ -182,6 +182,15 @@ contract BrainHarness is ZamaEthereumConfig {
         FHE.allow(_codes[0], to);
     }
 
+    /// @notice Verifies a KMS public-decryption result for the stored report.
+    /// @param clear ABI-encoded clear report value.
+    /// @param proof KMS decryption proof.
+    function checkReport(bytes calldata clear, bytes calldata proof) external {
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = euint8.unwrap(_report);
+        FHE.checkSignatures(handles, clear, proof);
+    }
+
     /// @notice Returns the public encrypted report handle.
     function getReport() external view returns (euint8) {
         return _report;

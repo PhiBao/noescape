@@ -1,0 +1,20 @@
+{
+  "name": "noescape-browser-decrypt-spike",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@zama-fhe/sdk": "3.8.0",
+    "viem": "^2",
+    "vite": "^7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

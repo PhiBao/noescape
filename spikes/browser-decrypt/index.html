@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>noescape browser decryption spike</title>
+    <style>
+      body { margin: 0; background: #15120f; color: #ede4d3; font: 16px/1.5 monospace; }
+      main { max-width: 860px; margin: 64px auto; padding: 0 24px; }
+      h1 { font-size: 28px; }
+      p, pre { margin: 16px 0; }
+      pre { padding: 16px; background: #211c17; white-space: pre-wrap; overflow-wrap: anywhere; }
+      button { margin: 8px 16px 8px 0; padding: 12px 18px; background: #c8963e; color: #15120f; border: 0; cursor: pointer; }
+      button:disabled { opacity: 0.5; cursor: wait; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>noescape — browser decryption spike</h1>
+      <p>Burner: <span data-testid="burner-address">generating…</span></p>
+      <pre data-testid="public-result">Public decryption pending…</pre>
+      <pre data-testid="check-result">Signature check pending…</pre>
+      <button data-testid="decrypt-code" type="button">Decrypt allowed search code</button>
+      <pre data-testid="code-result">Code decryption pending ACL grant…</pre>
+      <button data-testid="decrypt-position" type="button">Try to decrypt fugitive position</button>
+      <pre data-testid="position-result">Position refusal pending…</pre>
+    </main>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
