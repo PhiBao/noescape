@@ -7,6 +7,6 @@
   "scripts": {
     "test": "vitest run",
     "sim": "tsx scripts/sim.ts",
-    "gen:sol": "tsx scripts/gen-sol.ts"
+    "gen:sol": "tsx scripts/gen-sol.ts --hash $(git -C ../.. log -1 --format=%H -- packages/engine/src)"
   }
 }
