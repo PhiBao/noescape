@@ -92,6 +92,12 @@ contract NoEscapeCase is ZamaEthereumConfig {
     /// @notice The detective already has an open case.
     /// @param id Existing case id.
     error CaseActive(uint256 id);
+    /// @notice The case has not ended yet.
+    error NotEnded();
+    /// @notice The case reveal was already submitted.
+    error AlreadyVerified();
+    /// @notice The decoded reveal lengths do not match the handles.
+    error BadRevealLength();
 
     /// @notice A new solo case was opened.
     /// @param id Case id.
@@ -109,6 +115,14 @@ contract NoEscapeCase is ZamaEthereumConfig {
     /// @param status Final status.
     /// @param turn Final turn number.
     event CaseEnded(uint256 indexed id, Status status, uint8 turn);
+    // solhint-disable gas-indexed-events
+    /// @notice A revealed case was replayed on chain.
+    /// @param id Case id.
+    /// @param ok Whether verification passed.
+    /// @param failCode Failure code, zero when ok.
+    /// @param failTurn One-based failure turn.
+    event CaseVerified(uint256 indexed id, bool indexed ok, uint8 failCode, uint8 failTurn);
+    // solhint-enable gas-indexed-events
 
     /// @notice Opens a case with encrypted start and exit randomness.
     /// @return id New case id.
@@ -340,6 +354,185 @@ contract NoEscapeCase is ZamaEthereumConfig {
         if (msg.sender != c.detective) revert NotDetective();
         if (c.status != Status.Active) revert NotActive();
         _end(id, Status.Abandoned);
+    }
+
+    function _isEnded(Status status) internal pure returns (bool) {
+        return
+            status == Status.Caught || status == Status.Escaped || status == Status.Dawn || status == Status.Abandoned;
+    }
+
+    function _searchedCount(Case storage c, uint256 id) internal view returns (uint256 count) {
+        for (uint8 turn = 1; turn < c.turn + 1; ++turn) {
+            uint8 flags = turns[id][turn].searchFlags;
+            for (uint8 detective = 0; detective < 3; ++detective) {
+                if ((flags & (1 << detective)) != 0) ++count;
+            }
+        }
+    }
+
+    /// @notice Returns the fixed-order public decryption batches.
+    /// @param id Ended case id.
+    /// @return a Path handles.
+    /// @return b Exit, noise and searched-code handles.
+    function revealHandles(uint256 id) external view returns (bytes32[] memory a, bytes32[] memory b) {
+        return _revealHandles(id);
+    }
+
+    function _revealHandles(uint256 id) internal view returns (bytes32[] memory a, bytes32[] memory b) {
+        Case storage c = cases[id];
+        if (!_isEnded(c.status)) revert NotEnded();
+        a = new bytes32[](uint256(c.turn) + 1);
+        a[0] = euint128.unwrap(c.startPos);
+        for (uint8 turn = 1; turn < c.turn + 1; ++turn) {
+            a[turn] = euint128.unwrap(turns[id][turn].posAfter);
+        }
+        uint256 codeCount = _searchedCount(c, id);
+        b = new bytes32[](1 + uint256(c.turn) * 5 + codeCount);
+        b[0] = euint8.unwrap(c.exitIdx);
+        uint256 cursor = 1;
+        for (uint8 turn = 1; turn < c.turn + 1; ++turn) {
+            Turn storage tr = turns[id][turn];
+            for (uint8 index = 0; index < 5; ++index) {
+                b[cursor] = euint8.unwrap(tr.noise[index]);
+                ++cursor;
+            }
+            for (uint8 index = 0; index < 3; ++index) {
+                if ((tr.searchFlags & (1 << index)) != 0) {
+                    b[cursor] = euint8.unwrap(tr.codes[index]);
+                    ++cursor;
+                }
+            }
+        }
+    }
+
+    function _buildReveal(
+        Case storage c,
+        uint256 id,
+        uint128[] memory path,
+        uint8[] memory values
+    ) internal returns (CaseRules.Reveal memory r) {
+        uint256 noiseCount = uint256(c.turn) * 5;
+        uint256 codeCount = _searchedCount(c, id);
+        if (path.length != uint256(c.turn) + 1 || values.length != 1 + noiseCount + codeCount) {
+            revert BadRevealLength();
+        }
+        r.path = path;
+        r.turnCount = c.turn;
+        r.exitIdx = values[0];
+        r.finalStatus = uint8(c.status);
+        r.noise = new uint8[](noiseCount);
+        r.codes = new uint8[](codeCount);
+        r.orders = new uint8[3][](c.turn);
+        r.flags = new uint8[](c.turn);
+        r.reports = new uint8[](c.turn);
+        c.noiseClear = new bytes(noiseCount);
+        c.codesClear = new bytes(codeCount);
+        uint256 cursor = 1;
+        uint256 noiseCursor = 0;
+        uint256 codeCursor = 0;
+        for (uint8 index = 0; index < c.turn; ++index) {
+            Turn storage tr = turns[id][index + 1];
+            r.orders[index] = tr.cells;
+            r.flags[index] = tr.searchFlags;
+            r.reports[index] = tr.reportClear;
+            for (uint8 candidate = 0; candidate < 5; ++candidate) {
+                uint8 value = values[cursor];
+                ++cursor;
+                r.noise[noiseCursor] = value;
+                c.noiseClear[noiseCursor] = bytes1(value);
+                ++noiseCursor;
+            }
+            for (uint8 detective = 0; detective < 3; ++detective) {
+                if ((tr.searchFlags & (1 << detective)) == 0) continue;
+                uint8 value = values[cursor];
+                ++cursor;
+                r.codes[codeCursor] = value;
+                c.codesClear[codeCursor] = bytes1(value);
+                ++codeCursor;
+            }
+        }
+        c.path = path;
+        c.exitClear = r.exitIdx;
+    }
+
+    function _checkRevealSignatures(
+        uint256 id,
+        bytes memory clearA,
+        bytes memory proofA,
+        bytes memory clearB,
+        bytes memory proofB
+    ) internal {
+        (bytes32[] memory a, bytes32[] memory b) = _revealHandles(id);
+        FHE.checkSignatures(a, clearA, proofA);
+        FHE.checkSignatures(b, clearB, proofB);
+    }
+
+    function _word(bytes memory data, uint256 index) internal pure returns (uint256 value) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            value := mload(add(add(data, 0x20), mul(index, 0x20)))
+        }
+    }
+
+    function _decodePath(bytes memory clear, uint256 count) internal pure returns (uint128[] memory path) {
+        if (clear.length != count * 32) revert BadRevealLength();
+        path = new uint128[](count);
+        for (uint256 index = 0; index < count; ++index) {
+            uint256 value = _word(clear, index);
+            if (value > type(uint128).max) revert BadRevealLength();
+            path[index] = uint128(value);
+        }
+    }
+
+    function _decodeBytes(bytes memory clear, uint256 count) internal pure returns (uint8[] memory values) {
+        if (clear.length != count * 32) revert BadRevealLength();
+        values = new uint8[](count);
+        for (uint256 index = 0; index < count; ++index) {
+            uint256 value = _word(clear, index);
+            if (value > type(uint8).max) revert BadRevealLength();
+            values[index] = uint8(value);
+        }
+    }
+
+    function _decodeReveal(
+        uint256 id,
+        bytes memory clearA,
+        bytes memory clearB
+    ) internal returns (bool ok, uint8 failCode, uint8 failTurn) {
+        (bytes32[] memory a, bytes32[] memory b) = _revealHandles(id);
+        uint128[] memory path = _decodePath(clearA, a.length);
+        uint8[] memory values = _decodeBytes(clearB, b.length);
+        CaseRules.Reveal memory reveal = _buildReveal(cases[id], id, path, values);
+        (bool verified, uint8 code, uint8 turn, , , ) = CaseRules.verifyCase(reveal);
+        return (verified, code, turn);
+    }
+
+    /// @notice Verifies KMS-signed reveal batches and replays the case on chain.
+    /// @param id Ended case id.
+    /// @param clearA ABI-encoded path masks.
+    /// @param proofA Path KMS proof.
+    /// @param clearB ABI-encoded exit, noise and codes.
+    /// @param proofB Exit/noise/code KMS proof.
+    function submitReveal(
+        uint256 id,
+        bytes calldata clearA,
+        bytes calldata proofA,
+        bytes calldata clearB,
+        bytes calldata proofB
+    ) external {
+        {
+            Case storage activeCase = cases[id];
+            if (!_isEnded(activeCase.status)) revert NotEnded();
+            if (activeCase.verified) revert AlreadyVerified();
+        }
+        _checkRevealSignatures(id, clearA, proofA, clearB, proofB);
+        (bool ok, uint8 failCode, uint8 failTurn) = _decodeReveal(id, clearA, clearB);
+        Case storage c = cases[id];
+        c.verified = true;
+        c.verifyOk = ok;
+        c.failCode = failCode;
+        c.failTurn = failTurn;
+        emit CaseVerified(id, ok, failCode, failTurn);
     }
 
     /// @notice Returns a case record.

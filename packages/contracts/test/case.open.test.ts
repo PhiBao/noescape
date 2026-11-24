@@ -2,6 +2,15 @@ import { FhevmType } from "@fhevm/mock-utils";
 import { expect } from "chai";
 import { ethers, fhevm } from "hardhat";
 
+async function caseFactory() {
+  const rulesFactory = await ethers.getContractFactory("CaseRules");
+  const rules = await rulesFactory.deploy();
+  await rules.waitForDeployment();
+  return ethers.getContractFactory("NoEscapeCase", {
+    libraries: { CaseRules: rules.target },
+  });
+}
+
 async function expectUserDecryptRejection(promise: Promise<unknown>): Promise<void> {
   let rejection: unknown;
   try {
@@ -16,7 +25,7 @@ describe("case.open", () => {
   it("opens a case, assigns its id and updates stats", async () => {
     const [deployer, detective] = await ethers.getSigners();
     if (deployer === undefined || detective === undefined) throw new Error("missing signers");
-    const factory = await ethers.getContractFactory("NoEscapeCase");
+    const factory = await caseFactory();
     const contract = await factory.deploy();
     await contract.waitForDeployment();
 
@@ -42,7 +51,7 @@ describe("case.open", () => {
   it("rejects a second active case for the same detective", async () => {
     const [, detective] = await ethers.getSigners();
     if (detective === undefined) throw new Error("missing detective");
-    const factory = await ethers.getContractFactory("NoEscapeCase");
+    const factory = await caseFactory();
     const contract = await factory.deploy();
     await contract.connect(detective).openCase();
 
@@ -55,7 +64,7 @@ describe("case.open", () => {
     const { STARTS, cellOf } = await import("@noescape/engine");
     const [, detective] = await ethers.getSigners();
     if (detective === undefined) throw new Error("missing detective");
-    const factory = await ethers.getContractFactory("NoEscapeCase");
+    const factory = await caseFactory();
     const contract = await factory.deploy();
     await contract.connect(detective).openCase();
     const opened = await contract.getCase(1n);
@@ -78,7 +87,7 @@ describe("case.open", () => {
     if (deployer === undefined || detective === undefined || other === undefined) {
       throw new Error("missing signers");
     }
-    const factory = await ethers.getContractFactory("NoEscapeCase");
+    const factory = await caseFactory();
     const contract = await factory.deploy();
     await contract.connect(detective).openCase();
     const address = await contract.getAddress();

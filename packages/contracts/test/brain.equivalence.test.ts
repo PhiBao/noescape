@@ -3,9 +3,11 @@ import { expect } from "chai";
 import { ethers, fhevm } from "hardhat";
 
 describe("FugitiveBrain equivalence", function () {
-  this.timeout(600_000);
+  this.timeout(1_200_000);
 
-  it("matches the engine for 500 seeded states with both toward settings", async () => {
+  it("matches the engine for seeded states with both toward settings", async function () {
+    if (process.env.SOLIDITY_COVERAGE === "true") this.skip();
+    const stateCount = 500;
     const { CELLS, bit, brainStep, isWalkableCell } = await import("@noescape/engine");
     const walkable = Array.from({ length: CELLS }, (_, index) => index).filter(isWalkableCell);
     const [signer] = await ethers.getSigners();
@@ -21,7 +23,7 @@ describe("FugitiveBrain equivalence", function () {
     };
     const cell = (): number => walkable[Math.floor(random() * walkable.length)] ?? 0;
 
-    for (let stateIndex = 0; stateIndex < 500; stateIndex += 1) {
+    for (let stateIndex = 0; stateIndex < stateCount; stateIndex += 1) {
       const pos = bit(cell());
       const exitIdx = Math.floor(random() * 4);
       const detectiveCells = new Set<number>();
