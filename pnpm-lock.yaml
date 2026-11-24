@@ -21,6 +21,8 @@ importers:
         specifier: ^4
         version: 4.1.12(vite@8.3.8(esbuild@0.28.2)(tsx@4.23.15))
 
+  packages/engine: {}
+
 packages:
 
   '@biomejs/biome@2.6.8':

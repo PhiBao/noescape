@@ -1,0 +1,12 @@
+{
+  "name": "@noescape/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "sim": "tsx scripts/sim.ts",
+    "gen:sol": "tsx scripts/gen-sol.ts"
+  }
+}
