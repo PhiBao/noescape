@@ -176,6 +176,12 @@ contract BrainHarness is ZamaEthereumConfig {
         return _codes[index];
     }
 
+    /// @notice Allows the first latest search code to a spike user.
+    /// @param to Address granted test access.
+    function allowCode(address to) external {
+        FHE.allow(_codes[0], to);
+    }
+
     /// @notice Returns the public encrypted report handle.
     function getReport() external view returns (euint8) {
         return _report;
