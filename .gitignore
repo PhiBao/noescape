@@ -12,3 +12,4 @@ fhevmTemp
 .vercel
 playwright-report
 test-results
+.env*

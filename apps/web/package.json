@@ -1,0 +1,27 @@
+{
+  "name": "@noescape/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@noescape/contracts": "workspace:*",
+    "@noescape/engine": "workspace:*",
+    "@zama-fhe/sdk": "3.8.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "viem": "^2",
+    "wouter": "^3"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vercel/node": "^6",
+    "@vitejs/plugin-react": "^5",
+    "vite": "^7"
+  }
+}
