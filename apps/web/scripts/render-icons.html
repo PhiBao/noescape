@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @import url("/node_modules/@fontsource/big-shoulders-display/800.css");
+      @import url("/node_modules/@fontsource/ibm-plex-sans-condensed/400.css");
+      @import url("/src/styles/tokens.css");
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--desk); color: var(--chalk); font-family: var(--font-body); }
+      #favicon, #apple { width: 180px; height: 180px; background: var(--desk); }
+      #favicon { width: 32px; height: 32px; }
+      #favicon img, #apple img { display: block; width: 100%; height: 100%; }
+      #og { position: relative; width: 1200px; height: 630px; overflow: hidden; padding: 72px 80px; background: var(--lamp); }
+      .mark { display: inline-flex; align-items: center; font-family: var(--font-display); font-size: 112px; font-weight: 800; line-height: 1; }
+      .ring { position: relative; width: 78px; height: 78px; margin: 0 8px 0 3px; border: 6px solid var(--brass); border-top-color: transparent; border-radius: 50%; transform: rotate(38deg); }
+      .dot { position: absolute; top: -9px; right: -6px; width: 11px; height: 11px; border-radius: 50%; background: var(--grease); }
+      .identity { max-width: 690px; margin-top: 42px; font-size: 30px; line-height: 40px; }
+      .map { position: absolute; right: -70px; bottom: -80px; width: 520px; height: 440px; opacity: .9; transform: rotate(-8deg); background: var(--paper); box-shadow: var(--paper-shadow); }
+      .map svg { width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="favicon"><img src="/favicon.svg" alt="" /></div>
+    <div id="apple"><img src="/favicon.svg" alt="" /></div>
+    <div id="og">
+      <div class="mark">n<span class="ring"><span class="dot"></span></span>escape</div>
+      <div class="identity">A fugitive is hiding in this city. Nobody knows where — not you, not the chain, not us. Find it before dawn.</div>
+      <div class="map">
+        <svg viewBox="0 0 520 440" aria-hidden="true">
+          <rect width="520" height="440" fill="#EDE4D3"/>
+          <g stroke="#C9BCA4" stroke-width="2">
+            <path d="M0 80H520M0 160H520M0 240H520M0 320H520M80 0V440M160 0V440M240 0V440M320 0V440M400 0V440M480 0V440"/>
+          </g>
+          <g fill="#DDD0B8">
+            <rect x="85" y="85" width="70" height="70"/><rect x="245" y="85" width="70" height="70"/>
+            <rect x="405" y="85" width="70" height="70"/><rect x="85" y="245" width="70" height="70"/>
+            <rect x="245" y="245" width="70" height="70"/><rect x="405" y="245" width="70" height="70"/>
+          </g>
+          <path d="M0 360H520V440H0Z" fill="#6F8C99"/>
+          <path d="M165 350V450M395 350V450" stroke="#EDE4D3" stroke-width="24"/>
+          <path d="M40 40L120 120L210 55L300 140L390 70L470 150" fill="none" stroke="#C2362B" stroke-width="4"/>
+          <circle cx="40" cy="40" r="7" fill="#15120F"/>
+          <circle cx="470" cy="150" r="9" fill="#C2362B"/>
+        </svg>
+      </div>
+    </div>
+  </body>
+</html>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { getNoEscapeCaseReader } from "../chain/contracts.ts";
 import { mapError } from "../chain/errors.ts";
 import { publicDecrypt } from "../chain/zama.ts";
+import { Button } from "../ui/Button.tsx";
+import { Wordmark } from "../ui/Wordmark.tsx";
 
 export function Title() {
   const [message, setMessage] = useState("");
@@ -22,11 +24,16 @@ export function Title() {
 
   return (
     <main>
-      <h1>noescape</h1>
+      <h1>
+        <Wordmark />
+      </h1>
       <p>Title route placeholder.</p>
-      <button type="button" onClick={() => void decryptLatestReport()}>
-        Decrypt latest report (dev)
-      </button>
+      <Button type="button">Take the case</Button>
+      <p>
+        <Button variant="secondary" type="button" onClick={() => void decryptLatestReport()}>
+          Decrypt latest report (dev)
+        </Button>
+      </p>
       <p>{message}</p>
     </main>
   );
