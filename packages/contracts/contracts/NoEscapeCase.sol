@@ -396,6 +396,9 @@ contract NoEscapeCase is ZamaEthereumConfig {
                 b[cursor] = euint8.unwrap(tr.noise[index]);
                 ++cursor;
             }
+        }
+        for (uint8 turn = 1; turn < c.turn + 1; ++turn) {
+            Turn storage tr = turns[id][turn];
             for (uint8 index = 0; index < 3; ++index) {
                 if ((tr.searchFlags & (1 << index)) != 0) {
                     b[cursor] = euint8.unwrap(tr.codes[index]);
@@ -442,6 +445,9 @@ contract NoEscapeCase is ZamaEthereumConfig {
                 c.noiseClear[noiseCursor] = bytes1(value);
                 ++noiseCursor;
             }
+        }
+        for (uint8 index = 0; index < c.turn; ++index) {
+            Turn storage tr = turns[id][index + 1];
             for (uint8 detective = 0; detective < 3; ++detective) {
                 if ((tr.searchFlags & (1 << detective)) == 0) continue;
                 uint8 value = values[cursor];

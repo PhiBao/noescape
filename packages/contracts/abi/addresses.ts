@@ -11,9 +11,9 @@ export const contractAddresses = {
       txHash: "0xb3749ff2c1521950d0e183e7e631aa0fc294ae702107669b5de00d6965547be2",
     },
     NoEscapeCase: {
-      address: "0xaEAd151329AA54B6cce184ac26a4D9c0577b05cF",
-      deployBlock: 12202838,
-      txHash: "0x845537534ac40f1baf0c5e79d1615e3a4a475ed95e71aea2f24f906406c3c103",
+      address: "0x0Ef4b145f8123356478aBB67C1429eDd4D9F65DA",
+      deployBlock: 12204705,
+      txHash: "0xfd58defdfac5fe4955bba860b44cdd4f1121271e13885b7369fede07c0154718",
     },
   },
 } as const;

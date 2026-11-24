@@ -128,13 +128,6 @@ async function revealRecord(contract: NoEscapeCase, id: bigint) {
     }) as [number, number, number, number, number];
     const engineCodes: [number | null, number | null, number | null] = [null, null, null];
     const captured = to.includes(path[turn - 1] ?? -1);
-    for (let detective = 0; detective < 3; detective += 1) {
-      if ((turnFlags & (1 << detective)) === 0) continue;
-      const value = values[cursor++];
-      if (value === undefined) throw new Error("missing code");
-      codes.push(value);
-      if (!captured) engineCodes[detective] = value;
-    }
     orders.push(to);
     flags.push(turnFlags);
     reports.push(Number(record.reportClear));
@@ -146,6 +139,19 @@ async function revealRecord(contract: NoEscapeCase, id: bigint) {
       codes: engineCodes,
       report: Number(record.reportClear),
     });
+  }
+
+  for (let index = 0; index < engineTurns.length; index += 1) {
+    const turn = engineTurns[index];
+    if (turn === undefined) throw new Error("missing engine turn");
+    const captured = turn.to.includes(path[index] ?? -1);
+    for (let detective = 0; detective < 3; detective += 1) {
+      if ((turn.searchFlags & (1 << detective)) === 0) continue;
+      const value = values[cursor++];
+      if (value === undefined) throw new Error("missing code");
+      codes.push(value);
+      if (!captured) turn.codes[detective] = value;
+    }
   }
 
   const reveal = {
