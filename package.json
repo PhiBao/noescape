@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "biome check .",
     "test": "pnpm -r test",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "verify-case": "tsx packages/contracts/scripts/verify-case.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
