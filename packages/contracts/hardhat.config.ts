@@ -9,6 +9,7 @@ import type { HardhatUserConfig } from "hardhat/config";
 import { vars } from "hardhat/config";
 import "solidity-coverage";
 
+import "./tasks/case";
 import "./tasks/spike";
 import "./tasks/verify";
 
