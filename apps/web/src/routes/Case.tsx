@@ -9,6 +9,7 @@ import { ensurePermits, publicDecrypt, userDecrypt } from "../chain/zama.ts";
 import { type DecodedTurn, useCase } from "../game/useCase.ts";
 import { Coach } from "../ui/Coach.tsx";
 import { type DispatchInfo, DispatchStrip } from "../ui/DispatchStrip.tsx";
+import { EndCard } from "../ui/EndCard.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
 import { OrdersPanel } from "../ui/OrdersPanel.tsx";
 import { RadioLog } from "../ui/RadioLog.tsx";
@@ -44,7 +45,9 @@ export function Case() {
   const { id } = useParams();
   const caseId = id === undefined ? null : BigInt(id);
   const valid = caseId !== null && caseId > 0n;
-  const { state, log, setOrders, sendTurn, retry } = useCase(valid ? caseId : undefined);
+  const { state, log, setOrders, sendTurn, resolveAndReveal, retry } = useCase(
+    valid ? caseId : undefined,
+  );
   const layout = useLayout();
   const [selectedDetective, setSelectedDetective] = useState(0);
 
@@ -365,6 +368,14 @@ export function Case() {
                   {stamps}
                   {sightings}
                 </svg>
+              ) : null}
+              {state.phase === "ended" || state.phase === "verified" ? (
+                <EndCard
+                  caseId={caseId}
+                  state={state}
+                  entries={entries}
+                  onOpenCaseFile={() => void resolveAndReveal()}
+                />
               ) : null}
             </div>
           </div>
