@@ -57,7 +57,7 @@ export type CaseEvent =
   | { type: "TURN_MINED" }
   | { type: "DECODE_STARTED" }
   | { type: "TURN_DECODED"; outcome: CaseOutcome | null }
-  | { type: "REPORT_RECOVERED" }
+  | { type: "REPORT_RECOVERED"; outcome?: CaseOutcome | null }
   | { type: "RESOLVE_STARTED" }
   | { type: "REVEAL_STARTED" }
   | { type: "VERIFIED" }
@@ -165,7 +165,13 @@ export function caseReducer(state: CaseMachineState, event: CaseEvent): CaseMach
         : state;
     case "REPORT_RECOVERED":
       return state.phase === "decoding" && !state.decodingNewTurn
-        ? { ...state, phase: "planning", decodingNewTurn: false, orderError: null }
+        ? {
+            ...state,
+            phase: event.outcome == null ? "planning" : "ended",
+            outcome: event.outcome ?? null,
+            decodingNewTurn: false,
+            orderError: null,
+          }
         : state;
     case "RESOLVE_STARTED":
       return state.phase === "ended" ? { ...state, phase: "resolving" } : state;

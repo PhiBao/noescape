@@ -1,40 +1,52 @@
 import { useState } from "react";
-import { getNoEscapeCaseReader } from "../chain/contracts.ts";
-import { mapError } from "../chain/errors.ts";
-import { publicDecrypt } from "../chain/zama.ts";
+import { Link, useLocation } from "wouter";
+import { getOrCreateBurner } from "../chain/burner.ts";
+import { requestDrip } from "../chain/drip.ts";
+import { useCase } from "../game/useCase.ts";
 import { Button } from "../ui/Button.tsx";
 import { Wordmark } from "../ui/Wordmark.tsx";
 
 export function Title() {
+  const [, navigate] = useLocation();
+  const { state, openNewCase } = useCase();
   const [message, setMessage] = useState("");
+  const [starting, setStarting] = useState(false);
 
-  async function decryptLatestReport() {
+  async function takeCase() {
+    setMessage("");
+    setStarting(true);
     try {
-      const contract = getNoEscapeCaseReader();
-      const opened = await contract.read.getCase([1n]);
-      const turn = await contract.read.getTurn([1n, opened.turn]);
-      const result = await publicDecrypt([turn.report]);
-      setMessage(
-        `Report ${result.clear[turn.report]?.toString() ?? "missing"} · proof ${(result.proof.length - 2) / 2} bytes`,
-      );
-    } catch (error) {
-      setMessage(mapError(error));
+      const account = getOrCreateBurner();
+      const drip = await requestDrip(account.address);
+      if (drip.error !== undefined && drip.error !== "alreadyFunded") {
+        setMessage(drip.error);
+        return;
+      }
+      const id = await openNewCase(async () => undefined);
+      if (id !== null) navigate(`/case/${id}`);
+    } finally {
+      setStarting(false);
     }
   }
+
+  const busy = starting || state.phase === "opening";
 
   return (
     <main>
       <h1>
         <Wordmark />
       </h1>
-      <p>Title route placeholder.</p>
-      <Button type="button">Take the case</Button>
-      <p>
-        <Button variant="secondary" type="button" onClick={() => void decryptLatestReport()}>
-          Decrypt latest report (dev)
-        </Button>
-      </p>
-      <p>{message}</p>
+      <p>A fugitive is hiding in this city. Find it before dawn.</p>
+      {state.caseId !== null ? (
+        <p>
+          <Link href={`/case/${state.caseId}`}>Resume case #{state.caseId.toString()}</Link>
+        </p>
+      ) : null}
+      <Button type="button" disabled={busy} onClick={() => void takeCase()}>
+        {busy ? "Requesting fuel…" : "Take the case"}
+      </Button>
+      {message !== "" ? <p role="alert">{message}</p> : null}
+      {state.error !== null ? <p role="alert">{state.error.kind}</p> : null}
     </main>
   );
 }

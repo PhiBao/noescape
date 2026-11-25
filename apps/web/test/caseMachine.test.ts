@@ -73,6 +73,14 @@ describe("case machine", () => {
     expect(recovered.turn).toBe(3);
   });
 
+  it("ends when a resumed unresolved report is final", () => {
+    const state = hydrated({ turn: 4, reportResolved: false });
+    const recovered = caseReducer(state, { type: "REPORT_RECOVERED", outcome: "escaped" });
+    expect(recovered.phase).toBe("ended");
+    expect(recovered.outcome).toBe("escaped");
+    expect(recovered.turn).toBe(4);
+  });
+
   it("resumes ended and revealed cases", () => {
     expect(hydrated({ turn: 4, outcome: "caught" }).phase).toBe("ended");
     expect(hydrated({ turn: 4, outcome: "caught", revealed: true }).phase).toBe("revealing");

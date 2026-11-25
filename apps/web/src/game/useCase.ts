@@ -1,5 +1,5 @@
 import { type DetectiveCells, PRECINCT } from "@noescape/engine";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { Address, Hex } from "viem";
 import { getOrCreateBurner } from "../chain/burner.ts";
 import { publicClient } from "../chain/clients.ts";
@@ -17,6 +17,26 @@ import {
 
 const precinctCells: DetectiveCells = [PRECINCT[0].cell, PRECINCT[1].cell, PRECINCT[2].cell];
 
+function retryableTxError(error: unknown): boolean {
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  return (
+    message.includes("nonce too low") ||
+    message.includes("nonce too high") ||
+    message.includes("underpriced")
+  );
+}
+
+async function writeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!retryableTxError(error)) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    return operation();
+  }
+}
+
 function outcomeFromStatus(status: number): CaseOutcome | null {
   if (status === 2) return "caught";
   if (status === 3) return "escaped";
@@ -25,8 +45,17 @@ function outcomeFromStatus(status: number): CaseOutcome | null {
   return null;
 }
 
+export interface DecodedTurn {
+  turn: number;
+  report: number;
+  camera: number;
+  outcome: CaseOutcome | null;
+  codes: (number | null)[];
+}
+
 export function useCase(caseId?: bigint) {
   const [state, dispatch] = useReducer(caseReducer, undefined, initialCaseState);
+  const [log, setLog] = useState<DecodedTurn[]>([]);
   const decodingKey = useRef<string | null>(null);
   const readBlock = useRef<bigint | undefined>(undefined);
 
@@ -85,14 +114,25 @@ export function useCase(caseId?: bigint) {
         }
       }
     }
+    let decrypted: Record<Hex, bigint> = {};
     if (pairs.length > 0) {
       await ensurePermits([contract.address]);
-      await userDecrypt(pairs);
+      decrypted = await userDecrypt(pairs);
     }
     const status = Number(clear & 3n);
     const outcome =
       status === 1 ? "caught" : status === 2 ? "escaped" : turn === 12 ? "dawn" : null;
-    dispatch(isNewTurn ? { type: "TURN_DECODED", outcome } : { type: "REPORT_RECOVERED" });
+    const codes = [0, 1, 2].map((detective) => {
+      if ((record.searchFlags & (1 << detective)) === 0) return null;
+      const handle = record.codes[detective];
+      return handle === undefined ? null : Number(decrypted[handle] ?? -1n);
+    });
+    setLog((previous) => {
+      const next = previous.filter((entry) => entry.turn !== turn);
+      next.push({ turn, report: Number(clear), camera: Number(clear >> 2n), outcome, codes });
+      return next.sort((a, b) => a.turn - b.turn);
+    });
+    dispatch(isNewTurn ? { type: "TURN_DECODED", outcome } : { type: "REPORT_RECOVERED", outcome });
     return { clear, abi: report.abi, proof: report.proof, outcome };
   }, []);
 
@@ -127,13 +167,15 @@ export function useCase(caseId?: bigint) {
       const account = getOrCreateBurner();
       const contract = getNoEscapeCase(account);
       dispatch({ type: "SEND_TURN" });
-      const hash = await contract.write.playTurn([
-        id,
-        state.orders.to,
-        state.orders.searchFlags,
-        previousEncoded,
-        previousProof,
-      ]);
+      const hash = await writeWithRetry(() =>
+        contract.write.playTurn([
+          id,
+          state.orders.to,
+          state.orders.searchFlags,
+          previousEncoded,
+          previousProof,
+        ]),
+      );
       dispatch({ type: "TURN_MINED" });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       readBlock.current = receipt.blockNumber;
@@ -151,13 +193,9 @@ export function useCase(caseId?: bigint) {
       const [handlesA, handlesB] = await reader.read.revealHandles([id]);
       const batchA = await publicDecrypt(handlesA);
       const batchB = await publicDecrypt(handlesB);
-      const hash = await writer.write.submitReveal([
-        id,
-        batchA.abi,
-        batchA.proof,
-        batchB.abi,
-        batchB.proof,
-      ]);
+      const hash = await writeWithRetry(() =>
+        writer.write.submitReveal([id, batchA.abi, batchA.proof, batchB.abi, batchB.proof]),
+      );
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const opened = await reader.read.getCase([id], { blockNumber: receipt.blockNumber });
       if (opened.verified && opened.verifyOk) dispatch({ type: "VERIFIED" });
@@ -179,7 +217,9 @@ export function useCase(caseId?: bigint) {
         const latest = await reader.read.getTurn([id, opened.turn]);
         if (!latest.resolved) {
           const decoded = await decodeReport(id, opened.turn, false);
-          const hash = await writer.write.resolveReport([id, decoded.abi, decoded.proof]);
+          const hash = await writeWithRetry(() =>
+            writer.write.resolveReport([id, decoded.abi, decoded.proof]),
+          );
           await publicClient.waitForTransactionReceipt({ hash });
         }
       }
@@ -205,15 +245,17 @@ export function useCase(caseId?: bigint) {
         const account = getOrCreateBurner();
         const writer = getNoEscapeCase(account);
         const reader = getNoEscapeCaseReader();
-        const hash = await writer.write.openCase();
+        const hash = await writeWithRetry(() => writer.write.openCase());
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         const id = await reader.read.activeCaseOf([account.address], {
           blockNumber: receipt.blockNumber,
         });
         if (id === 0n) throw new Error("case did not open");
         dispatch({ type: "OPENED", id });
+        return id;
       } catch (error) {
         fail(error, "funding");
+        return null;
       }
     },
     [fail],
@@ -232,5 +274,5 @@ export function useCase(caseId?: bigint) {
     if (retryTo === "revealing") await submitReveal(state.caseId);
   }, [hydrate, state.caseId, state.error, state.phase, submitReveal]);
 
-  return { state, setOrders, sendTurn, resolveAndReveal, openNewCase, retry };
+  return { state, log, setOrders, sendTurn, resolveAndReveal, openNewCase, retry };
 }
