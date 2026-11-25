@@ -15,6 +15,16 @@ export const contractAddresses = {
       deployBlock: 12204705,
       txHash: "0xfd58defdfac5fe4955bba860b44cdd4f1121271e13885b7369fede07c0154718",
     },
+    CaseRulesMostWanted: {
+      address: "0xb9fBf0953397311f91c6C0A1fb15fcfABC321ba4",
+      deployBlock: 12208147,
+      txHash: "0xc5a73b83a8cf3f006886c71442705207349ad769a6091a294001ba7f37b755e1",
+    },
+    MostWanted: {
+      address: "0x31606A8123D2e47450A06D94694A51AD7A20EfBD",
+      deployBlock: 12208148,
+      txHash: "0xe4cfb0d62f5bc20c00ce2ea2b0aff2a41b1aa7f81ad8a9fbbe27a584b61a240f",
+    },
   },
 } as const;
 

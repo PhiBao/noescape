@@ -57,3 +57,28 @@ This case verified on the initial NoEscapeCase deployment. Its reveal batch B us
 | resolveReport | [`0x664fb557901b99dd669db8df09a9764cd8094cc59c3736508c92bc04628d94cd`](https://sepolia.etherscan.io/tx/0x664fb557901b99dd669db8df09a9764cd8094cc59c3736508c92bc04628d94cd) | 12204725 | 5415218 |  58.149 s |
 | submitReveal  | [`0x0a0f71e6ccaf5e1929fea25b31140d01e2d1b5ce2917587821071fb4d8143368`](https://sepolia.etherscan.io/tx/0x0a0f71e6ccaf5e1929fea25b31140d01e2d1b5ce2917587821071fb4d8143368) | 12204730 | 1850811 |   7.838 s |
 | setDrip       | [`0x3f19ecb31b98b6c45f100e2bfcc223401a612bb9a4ed49b22925c1ca04d3b819`](https://sepolia.etherscan.io/tx/0x3f19ecb31b98b6c45f100e2bfcc223401a612bb9a4ed49b22925c1ca04d3b819) | 12204731 |   21009 |  11.163 s |
+
+## Most Wanted contracts
+
+| Contract            | Address                                                                                                                         | Deploy block | Deploy transaction                                                                                                  | Verified source                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -----------: | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| CaseRulesMostWanted | [`0xb9fBf0953397311f91c6C0A1fb15fcfABC321ba4`](https://sepolia.etherscan.io/address/0xb9fBf0953397311f91c6C0A1fb15fcfABC321ba4) |   12,208,147 | [`0xc5a73b83…`](https://sepolia.etherscan.io/tx/0xc5a73b83a8cf3f006886c71442705207349ad769a6091a294001ba7f37b755e1) | [Etherscan](https://sepolia.etherscan.io/address/0xb9fBf0953397311f91c6C0A1fb15fcfABC321ba4#code) |
+| MostWanted          | [`0x31606A8123D2e47450A06D94694A51AD7A20EfBD`](https://sepolia.etherscan.io/address/0x31606A8123D2e47450A06D94694A51AD7A20EfBD) |   12,208,148 | [`0xe4cfb0d6…`](https://sepolia.etherscan.io/tx/0xe4cfb0d62f5bc20c00ce2ea2b0aff2a41b1aa7f81ad8a9fbbe27a584b61a240f) | [Etherscan](https://sepolia.etherscan.io/address/0x31606A8123D2e47450A06D94694A51AD7A20EfBD#code) |
+
+The daily verifier uses a separate `CaseRulesMostWanted` deployment so the existing solo contract keeps its original linked library.
+
+## Most Wanted day 20782 — first CLI hunt
+
+- UTC day: 2026-11-25 (`20782`)
+- Hunter: deployer `0xDbFe5c4d0256D2459bB216caB905999Ca41bE349`
+- Action: index 0, step 1, cell 29 → 29, searched
+- Public camera report: `0` (camera 0)
+- User-decrypted search code: `0`
+
+| Step        | Transaction                                                                                                         |    Block |     Gas | Wall time |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- | -------: | ------: | --------: |
+| setOperator | [`0xbc74aa6a…`](https://sepolia.etherscan.io/tx/0xbc74aa6a6767cbb7fff9959f14a0057c5b157185b13a53274a70641fb50b5eba) | 12208157 |  133549 |  29.101 s |
+| join        | [`0xba01e2b8…`](https://sepolia.etherscan.io/tx/0xba01e2b8be7fdb6e371338868fbf12e133e3c5864fc09cb7e066cf359b80a095) | 12208158 | 3224152 |   4.577 s |
+| hunt        | [`0xaa38ff39…`](https://sepolia.etherscan.io/tx/0xaa38ff39148e8b53b9af0f381dcb20c3b4bcd16002af04fe2c73ee08221fba91) | 12208159 | 6102050 |  24.105 s |
+
+`pnpm -F contracts exec hardhat mw:status --network sepolia` reports day 20782 active with one hunter, one step and action index 0.

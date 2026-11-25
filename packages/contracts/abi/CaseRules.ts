@@ -129,4 +129,105 @@ export const CaseRulesAbi = [
     stateMutability: "pure",
     type: "function",
   },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint128[]",
+            name: "path",
+            type: "uint128[]",
+          },
+          {
+            internalType: "uint128[]",
+            name: "detMasks",
+            type: "uint128[]",
+          },
+          {
+            internalType: "uint8[]",
+            name: "noise",
+            type: "uint8[]",
+          },
+          {
+            internalType: "uint16[]",
+            name: "hunters",
+            type: "uint16[]",
+          },
+          {
+            internalType: "uint8[]",
+            name: "actionSteps",
+            type: "uint8[]",
+          },
+          {
+            internalType: "uint8[]",
+            name: "fromCells",
+            type: "uint8[]",
+          },
+          {
+            internalType: "uint8[]",
+            name: "toCells",
+            type: "uint8[]",
+          },
+          {
+            internalType: "bool[]",
+            name: "searched",
+            type: "bool[]",
+          },
+          {
+            internalType: "uint8[]",
+            name: "codes",
+            type: "uint8[]",
+          },
+          {
+            internalType: "uint16",
+            name: "hunterCount",
+            type: "uint16",
+          },
+          {
+            internalType: "uint8",
+            name: "finalStatus",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct CaseRules.DailyReveal",
+        name: "r",
+        type: "tuple",
+      },
+    ],
+    name: "verifyDaily",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
+      },
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+      {
+        internalType: "uint16",
+        name: "",
+        type: "uint16",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
 ] as const;

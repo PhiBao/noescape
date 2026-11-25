@@ -600,6 +600,14 @@ contract MostWanted is ZamaEthereumConfig {
     }
     // solhint-enable code-complexity
 
+    /// @notice Returns the public camera-report handle for a night step.
+    /// @param day UTC day number.
+    /// @param step One-based night-step number.
+    /// @return Encoded public camera report.
+    function stepReportOf(uint32 day, uint8 step) external view returns (euint8) {
+        return stepReport[day][step];
+    }
+
     /// @notice Returns the public and encrypted state of a day.
     /// @param day UTC day number.
     /// @return Day state.

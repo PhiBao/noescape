@@ -10,6 +10,7 @@ import { vars } from "hardhat/config";
 import "solidity-coverage";
 
 import "./tasks/case";
+import "./tasks/mostwanted";
 import "./tasks/spike";
 import "./tasks/token";
 import "./tasks/verify";

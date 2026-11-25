@@ -12,6 +12,8 @@ function main(): void {
     { name: "GasTap", artifact: "GasTap.sol/GasTap.json" },
     { name: "CaseRules", artifact: "lib/CaseRules.sol/CaseRules.json" },
     { name: "NoEscapeCase", artifact: "NoEscapeCase.sol/NoEscapeCase.json" },
+    { name: "CaseRulesMostWanted", artifact: "lib/CaseRules.sol/CaseRules.json" },
+    { name: "MostWanted", artifact: "MostWanted.sol/MostWanted.json" },
   ] as const;
 
   for (const { name, artifact } of contracts) {
