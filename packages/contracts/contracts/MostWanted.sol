@@ -6,6 +6,7 @@ import {FHE, ebool, euint8, euint64, euint128} from "@fhevm/solidity/lib/FHE.sol
 import {IERC7984} from "@openzeppelin/confidential-contracts/interfaces/IERC7984.sol";
 import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {CityMapData} from "./generated/CityMapData.sol";
+import {CaseRules} from "./lib/CaseRules.sol";
 import {FugitiveBrain} from "./lib/FugitiveBrain.sol";
 import {Grid} from "./lib/Grid.sol";
 
@@ -22,6 +23,11 @@ contract MostWanted is ZamaEthereumConfig {
     uint256 internal constant WATCH_SECONDS = 30 minutes;
     uint8 internal constant ORDER_UNREACHABLE = 1;
     uint8 internal constant ORDER_NOT_WALKABLE = 3;
+    uint8 internal constant REVEAL_PATH = 0;
+    uint8 internal constant REVEAL_NOISE = 1;
+    uint8 internal constant REVEAL_CODES = 2;
+    uint16 internal constant PATH_BATCH_SIZE = 16;
+    uint16 internal constant CODE_BATCH_SIZE = 256;
 
     // solhint-disable-next-line gas-struct-packing
     struct Hunter {
@@ -63,6 +69,12 @@ contract MostWanted is ZamaEthereumConfig {
         bool resolved;
     }
 
+    struct RevealPart {
+        uint8 kind;
+        uint16 start;
+        bytes32[] handles;
+    }
+
     mapping(uint32 day => Day data) private dayData;
     mapping(uint32 day => address[] hunters) private hunterList;
     mapping(uint32 day => mapping(address hunter => Hunter hunterData)) private hunterOf;
@@ -72,6 +84,11 @@ contract MostWanted is ZamaEthereumConfig {
     mapping(uint32 day => mapping(uint8 step => uint128 detMask)) private stepDetMask;
     mapping(uint32 day => Action[] actions) private actions;
     euint64 private rollover;
+    mapping(uint32 day => uint128[] clears) private dailyPathClear;
+    mapping(uint32 day => uint8[] clears) private dailyNoiseClear;
+    mapping(uint32 day => uint8[] clears) private dailyCodesClear;
+    mapping(uint32 day => uint256 submitted) private dailyRevealedParts;
+    mapping(uint32 day => mapping(address hunter => uint16 number)) private hunterNoOf;
 
     /// @notice Official confidential token used for fees and payouts.
     IERC7984 public immutable TOKEN;
@@ -93,6 +110,18 @@ contract MostWanted is ZamaEthereumConfig {
     error BadOrders(uint8 reason);
     /// @notice The action index does not exist.
     error BadAction();
+    /// @notice The day has not started.
+    error NotStarted();
+    /// @notice The day has not ended.
+    error NotEnded();
+    /// @notice The requested reveal part is not in the plan.
+    error BadRevealPart();
+    /// @notice The reveal part was already submitted.
+    error AlreadySubmitted();
+    /// @notice The decoded reveal length does not match its handles.
+    error BadRevealLength();
+    /// @notice The day reveal was already verified.
+    error AlreadyVerified();
 
     /// @notice A new UTC day was opened.
     /// @param day UTC day number.
@@ -126,6 +155,13 @@ contract MostWanted is ZamaEthereumConfig {
         uint8 toCell,
         bool searched
     );
+    // solhint-disable gas-indexed-events
+    /// @notice A revealed day was replayed on chain.
+    /// @param day UTC day number.
+    /// @param ok Whether verification passed.
+    /// @param failCode Failure code, zero when ok.
+    event DayVerified(uint32 indexed day, bool indexed ok, uint8 failCode);
+    // solhint-enable gas-indexed-events
 
     /// @notice Creates the daily game with the official token and fee.
     /// @param token_ Confidential token address.
@@ -140,6 +176,7 @@ contract MostWanted is ZamaEthereumConfig {
         if (previous.status != STATUS_ACTIVE) return;
         previous.status = STATUS_GOT_AWAY;
         rollover = FHE.allowThis(previous.pot);
+        _makeRevealPublic(previous);
         emit DayClosed(previousDay, previous.status);
     }
 
@@ -203,6 +240,7 @@ contract MostWanted is ZamaEthereumConfig {
         uint8[3] memory precinct = [CityMapData.PRECINCT_0, CityMapData.PRECINCT_1, CityMapData.PRECINCT_2];
         hunter.cell = precinct[hunterNo % 3];
         hunter.joined = true;
+        hunterNoOf[day.day][msg.sender] = hunterNo;
         hunterList[day.day].push(msg.sender);
         day.hunters = hunterNo + 1;
         emit HunterJoined(day.day, msg.sender, hunter.cell, hunterNo);
@@ -361,6 +399,206 @@ contract MostWanted is ZamaEthereumConfig {
             revert BadAction();
         }
     }
+
+    /// @notice Closes an active day after its UTC window has ended.
+    /// @param day UTC day number.
+    function closeDay(uint32 day) external {
+        Day storage opened = dayData[day];
+        if (opened.status == STATUS_NONE) revert NotStarted();
+        if (opened.status != STATUS_ACTIVE) revert DayOver();
+        if (block.timestamp < (uint256(day) + 1) * 1 days) revert NotEnded();
+        opened.status = STATUS_GOT_AWAY;
+        rollover = FHE.allowThis(opened.pot);
+        _makeRevealPublic(opened);
+        emit DayClosed(day, opened.status);
+    }
+
+    function _pathHandle(Day storage opened, uint256 index) internal view returns (bytes32) {
+        return
+            index == 0
+                ? bytes32(euint128.unwrap(opened.startPos))
+                : bytes32(euint128.unwrap(stepPos[opened.day][uint8(index)]));
+    }
+
+    function _revealPlan(Day storage opened) internal view returns (RevealPart[] memory parts) {
+        uint256 pathCount = uint256(opened.steps) + 1;
+        uint256 pathParts = (pathCount + PATH_BATCH_SIZE - 1) / PATH_BATCH_SIZE;
+        uint256 noiseCount = uint256(opened.steps) * 5;
+        uint256 noiseParts = noiseCount == 0 ? 0 : 1;
+        uint256 codeCount = actions[opened.day].length;
+        uint256 codeParts = (codeCount + CODE_BATCH_SIZE - 1) / CODE_BATCH_SIZE;
+        parts = new RevealPart[](pathParts + noiseParts + codeParts);
+        uint256 cursor;
+
+        for (uint256 part = 0; part < pathParts; ++part) {
+            uint256 start = part * PATH_BATCH_SIZE;
+            uint256 size = pathCount - start < PATH_BATCH_SIZE ? pathCount - start : PATH_BATCH_SIZE;
+            bytes32[] memory handles = new bytes32[](size);
+            for (uint256 index = 0; index < size; ++index) {
+                handles[index] = _pathHandle(opened, start + index);
+            }
+            parts[cursor] = RevealPart(REVEAL_PATH, uint16(start), handles);
+            ++cursor;
+        }
+        if (noiseCount > 0) {
+            bytes32[] memory handles = new bytes32[](noiseCount);
+            uint256 offset;
+            for (uint8 step = 1; step < opened.steps + 1; ++step) {
+                for (uint8 candidate = 0; candidate < 5; ++candidate) {
+                    handles[offset] = bytes32(euint8.unwrap(stepNoise[opened.day][step][candidate]));
+                    ++offset;
+                }
+            }
+            parts[cursor] = RevealPart(REVEAL_NOISE, 0, handles);
+            ++cursor;
+        }
+        for (uint256 part = 0; part < codeParts; ++part) {
+            uint256 start = part * CODE_BATCH_SIZE;
+            uint256 size = codeCount - start < CODE_BATCH_SIZE ? codeCount - start : CODE_BATCH_SIZE;
+            bytes32[] memory handles = new bytes32[](size);
+            for (uint256 index = 0; index < size; ++index) {
+                handles[index] = bytes32(euint8.unwrap(actions[opened.day][start + index].code));
+            }
+            parts[cursor] = RevealPart(REVEAL_CODES, uint16(start), handles);
+            ++cursor;
+        }
+    }
+
+    /// @notice Returns the exact public-decryption batches for a closed day.
+    /// @param day UTC day number.
+    /// @return Ordered path, noise and code batches.
+    function revealPlan(uint32 day) external view returns (RevealPart[] memory) {
+        Day storage opened = dayData[day];
+        if (opened.status != STATUS_CAUGHT && opened.status != STATUS_GOT_AWAY) revert NotEnded();
+        return _revealPlan(opened);
+    }
+
+    function _word(bytes memory data, uint256 index) internal pure returns (uint256 value) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            value := mload(add(add(data, 32), mul(index, 32)))
+        }
+    }
+
+    function _decodePathValues(bytes memory clear, uint256 count) internal pure returns (uint128[] memory values) {
+        if (clear.length != count * 32) revert BadRevealLength();
+        values = new uint128[](count);
+        for (uint256 index = 0; index < count; ++index) {
+            uint256 value = _word(clear, index);
+            if (value > type(uint128).max) revert BadRevealLength();
+            values[index] = uint128(value);
+        }
+    }
+
+    function _decodeByteValues(bytes memory clear, uint256 count) internal pure returns (uint8[] memory values) {
+        if (clear.length != count * 32) revert BadRevealLength();
+        values = new uint8[](count);
+        for (uint256 index = 0; index < count; ++index) {
+            uint256 value = _word(clear, index);
+            if (value > type(uint8).max) revert BadRevealLength();
+            values[index] = uint8(value);
+        }
+    }
+
+    function _storePath(uint32 day, uint16 start, uint128[] memory values) internal {
+        uint128[] storage stored = dailyPathClear[day];
+        uint256 end = uint256(start) + values.length;
+        if (stored.length < end) {
+            while (stored.length < end) stored.push();
+        }
+        for (uint256 index = 0; index < values.length; ++index) {
+            stored[uint256(start) + index] = values[index];
+        }
+    }
+
+    function _storeBytes(uint32 day, uint8 kind, uint16 start, uint8[] memory values) internal {
+        uint8[] storage stored = kind == REVEAL_NOISE ? dailyNoiseClear[day] : dailyCodesClear[day];
+        uint256 end = uint256(start) + values.length;
+        if (stored.length < end) {
+            while (stored.length < end) stored.push();
+        }
+        for (uint256 index = 0; index < values.length; ++index) {
+            stored[uint256(start) + index] = values[index];
+        }
+    }
+
+    function _dailyReveal(Day storage opened) internal view returns (CaseRules.DailyReveal memory record) {
+        record.path = dailyPathClear[opened.day];
+        record.detMasks = new uint128[](opened.steps);
+        for (uint8 step = 1; step < opened.steps + 1; ++step) {
+            record.detMasks[step - 1] = stepDetMask[opened.day][step];
+        }
+        record.noise = dailyNoiseClear[opened.day];
+        uint256 actionCount = actions[opened.day].length;
+        record.hunters = new uint16[](actionCount);
+        record.actionSteps = new uint8[](actionCount);
+        record.fromCells = new uint8[](actionCount);
+        record.toCells = new uint8[](actionCount);
+        record.searched = new bool[](actionCount);
+        record.codes = new uint8[](actionCount);
+        for (uint256 index = 0; index < actionCount; ++index) {
+            Action storage action = actions[opened.day][index];
+            record.hunters[index] = hunterNoOf[opened.day][action.hunter];
+            record.actionSteps[index] = action.step;
+            record.fromCells[index] = action.fromCell;
+            record.toCells[index] = action.toCell;
+            record.searched[index] = action.searched;
+            record.codes[index] = dailyCodesClear[opened.day][index];
+        }
+        record.hunterCount = opened.hunters;
+        record.finalStatus = opened.status;
+    }
+
+    // solhint-disable code-complexity
+    /// @notice Submits one KMS-signed daily reveal batch.
+    /// @param day UTC day number.
+    /// @param kind Reveal kind: path, noise or codes.
+    /// @param start First handle index within the kind.
+    /// @param clear ABI-encoded clear values.
+    /// @param proof KMS decryption proof.
+    function submitDailyReveal(
+        uint32 day,
+        uint8 kind,
+        uint16 start,
+        bytes calldata clear,
+        bytes calldata proof
+    ) external {
+        Day storage opened = dayData[day];
+        if (opened.status != STATUS_CAUGHT && opened.status != STATUS_GOT_AWAY) revert NotEnded();
+        if (opened.verified) revert AlreadyVerified();
+        RevealPart[] memory plan = _revealPlan(opened);
+        uint256 partIndex;
+        bool found;
+        for (partIndex = 0; partIndex < plan.length; ++partIndex) {
+            if (plan[partIndex].kind == kind && plan[partIndex].start == start) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) revert BadRevealPart();
+        uint256 partBit = uint256(1) << partIndex;
+        if ((dailyRevealedParts[day] & partBit) != 0) revert AlreadySubmitted();
+        FHE.checkSignatures(plan[partIndex].handles, clear, proof);
+
+        if (kind == REVEAL_PATH) {
+            uint128[] memory values = _decodePathValues(clear, plan[partIndex].handles.length);
+            _storePath(day, start, values);
+        } else {
+            uint8[] memory values = _decodeByteValues(clear, plan[partIndex].handles.length);
+            _storeBytes(day, kind, start, values);
+        }
+        dailyRevealedParts[day] |= partBit;
+
+        uint256 expected = (uint256(1) << plan.length) - 1;
+        if (dailyRevealedParts[day] == expected) {
+            (bool ok, uint8 failCode, , , , ) = CaseRules.verifyDaily(_dailyReveal(opened));
+            opened.verified = true;
+            opened.verifyOk = ok;
+            opened.failCode = failCode;
+            emit DayVerified(day, ok, failCode);
+        }
+    }
+    // solhint-enable code-complexity
 
     /// @notice Returns the public and encrypted state of a day.
     /// @param day UTC day number.

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { bit, reach } from "../src/bits.ts";
+import { bit, cellOf, neighbors, plus, reach } from "../src/bits.ts";
+import { brainStep } from "../src/brain.ts";
 import { applyTurn, type CaseRecord, newCase, toRecord } from "../src/case.ts";
-import { idx } from "../src/map.ts";
+import { idx, PRECINCT, STARTS } from "../src/map.ts";
 import { WALK } from "../src/masks.ts";
-import { verifyCase } from "../src/verify.ts";
+import { searchCode } from "../src/rules.ts";
+import { type DailyRecord, verifyCase, verifyDaily } from "../src/verify.ts";
 
 function random(seed: number): () => number {
   let state = seed >>> 0;
@@ -126,5 +128,117 @@ describe("verifier", () => {
     if (turn === undefined) throw new Error("missing turn");
     turn.to[0] = idx(11, 9);
     expect(verifyCase(record)).toMatchObject({ ok: false, failCode: 8, failTurn: 1 });
+  });
+});
+
+function playDaily(seed: number): DailyRecord {
+  const rng = random(seed);
+  const start = STARTS[Math.floor(rng() * STARTS.length)];
+  if (start === undefined) throw new Error("missing start");
+  const path = [start];
+  const cells = PRECINCT.map((entry) => entry.cell);
+  const steps: DailyRecord["steps"] = [];
+  const actions: DailyRecord["actions"] = [];
+
+  for (let step = 1; step <= 10; step += 1) {
+    const detMask = cells.reduce((mask, cell) => mask | bit(cell), 0n);
+    const noise: [number, number, number, number, number] = [
+      Math.floor(rng() * 8),
+      Math.floor(rng() * 8),
+      Math.floor(rng() * 8),
+      Math.floor(rng() * 8),
+      Math.floor(rng() * 8),
+    ];
+    const current = path[path.length - 1];
+    if (current === undefined) throw new Error("missing current position");
+    const next = cellOf(brainStep(bit(current), 0, detMask, noise, false).newPos);
+    if (next < 0) throw new Error("invalid daily move");
+    const hunter = (step - 1) % 3;
+    const fromCell = cells[hunter];
+    if (fromCell === undefined) throw new Error("missing hunter");
+    const toCell = fromCell;
+    const code = next === toCell ? 0 : searchCode(path.map(bit), step, toCell);
+    actions.push({ hunter, step, fromCell, toCell, searched: true, code });
+    cells[hunter] = toCell;
+    path.push(next);
+    steps.push({ detMask, noise });
+  }
+
+  return { path, steps, actions, hunterCount: 3, finalStatus: "gotAway" };
+}
+
+describe("daily verifier", () => {
+  it("verifies a ten-step day with three hunters", () => {
+    const record = playDaily(41);
+    expect(verifyDaily(record)).toEqual({
+      ok: true,
+      failCode: 0,
+      failTurn: 0,
+      counts: { moves: 10, answers: 10, reports: 10 },
+    });
+  });
+
+  it("rejects a tampered daily start", () => {
+    const record = playDaily(7);
+    record.path[0] = idx(5, 2);
+    expect(verifyDaily(record)).toMatchObject({ ok: false, failCode: 1, failTurn: 0 });
+  });
+
+  it("rejects a tampered daily path", () => {
+    const record = playDaily(9);
+    const start = record.path[0];
+    const original = record.path[1];
+    if (start === undefined || original === undefined) throw new Error("missing path");
+    const adjacent = neighbors(bit(start)) & WALK;
+    const searchedShapes = PRECINCT.reduce((mask, entry) => mask | plus(entry.cell), 0n);
+    const replacement = Array.from({ length: 120 }, (_, cell) => cell).find(
+      (cell) =>
+        (WALK & bit(cell)) !== 0n &&
+        (adjacent & bit(cell)) === 0n &&
+        (searchedShapes & bit(cell)) === 0n &&
+        cell !== original,
+    );
+    if (replacement === undefined) throw new Error("no alternate path cell");
+    record.path[1] = replacement;
+    expect(verifyDaily(record)).toMatchObject({ ok: false, failCode: 3, failTurn: 1 });
+  });
+
+  it("rejects tampered daily noise that changes the argmax", () => {
+    const record = playDaily(13);
+    for (let stepIndex = 0; stepIndex < record.steps.length; stepIndex += 1) {
+      const step = record.steps[stepIndex];
+      if (step === undefined) continue;
+      for (let candidate = 0; candidate < 5; candidate += 1) {
+        for (let value = 0; value < 8; value += 1) {
+          if (value === step.noise[candidate]) continue;
+          const tampered = structuredClone(record);
+          const tamperedStep = tampered.steps[stepIndex];
+          if (tamperedStep === undefined) continue;
+          tamperedStep.noise[candidate] = value;
+          const result = verifyDaily(tampered);
+          if (result.failCode === 4) {
+            expect(result).toMatchObject({ ok: false, failCode: 4, failTurn: stepIndex + 1 });
+            return;
+          }
+        }
+      }
+    }
+    throw new Error("no single-noise tamper changed a daily move");
+  });
+
+  it("rejects a tampered daily code", () => {
+    const record = playDaily(17);
+    const action = record.actions[0];
+    if (action === undefined) throw new Error("missing action");
+    action.code = action.code === 2 ? 0 : 2;
+    expect(verifyDaily(record)).toMatchObject({ ok: false, failCode: 5, failTurn: 1 });
+  });
+
+  it("rejects a tampered daily order", () => {
+    const record = playDaily(29);
+    const action = record.actions[0];
+    if (action === undefined) throw new Error("missing action");
+    action.fromCell = idx(11, 9);
+    expect(verifyDaily(record)).toMatchObject({ ok: false, failCode: 8, failTurn: 1 });
   });
 });

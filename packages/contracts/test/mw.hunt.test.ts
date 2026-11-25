@@ -33,10 +33,13 @@ async function deployFixture() {
   }
   const token = await (await ethers.getContractFactory("TestToken")).deploy();
   await token.waitForDeployment();
-  const wanted = await (await ethers.getContractFactory("MostWanted")).deploy(
-    await token.getAddress(),
-    FEE,
-  );
+  const rules = await (await ethers.getContractFactory("CaseRules")).deploy();
+  await rules.waitForDeployment();
+  const wanted = await (
+    await ethers.getContractFactory("MostWanted", {
+      libraries: { CaseRules: rules.target },
+    })
+  ).deploy(await token.getAddress(), FEE);
   await wanted.waitForDeployment();
   return { token, wanted, deployer, hunter, other, third };
 }

@@ -18,7 +18,11 @@ async function deployFixture() {
   const tokenFactory = await ethers.getContractFactory("TestToken");
   const token = await tokenFactory.deploy();
   await token.waitForDeployment();
-  const wantedFactory = await ethers.getContractFactory("MostWanted");
+  const rules = await (await ethers.getContractFactory("CaseRules")).deploy();
+  await rules.waitForDeployment();
+  const wantedFactory = await ethers.getContractFactory("MostWanted", {
+    libraries: { CaseRules: rules.target },
+  });
   const wanted = await wantedFactory.deploy(await token.getAddress(), FEE);
   await wanted.waitForDeployment();
   return { token, wanted, deployer, hunter, other };

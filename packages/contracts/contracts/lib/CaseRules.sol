@@ -27,6 +27,31 @@ library CaseRules {
         uint8 finalStatus;
     }
 
+    // solhint-disable-next-line gas-struct-packing
+    struct DailyReveal {
+        uint128[] path;
+        uint128[] detMasks;
+        uint8[] noise;
+        uint16[] hunters;
+        uint8[] actionSteps;
+        uint8[] fromCells;
+        uint8[] toCells;
+        bool[] searched;
+        uint8[] codes;
+        uint16 hunterCount;
+        uint8 finalStatus;
+    }
+
+    struct DailyVerification {
+        bool ok;
+        uint8 failCode;
+        uint16 failTurn;
+        uint16 moves;
+        uint16 answers;
+        uint16 reports;
+        bool capturedAny;
+    }
+
     struct Counts {
         uint16 moves;
         uint16 answers;
@@ -335,6 +360,179 @@ library CaseRules {
                 (terminalStatus == 3 && (r.finalStatus == 4 || r.finalStatus == 5));
         if (!finalMatches) return (false, 6, r.turnCount, counts.moves, counts.answers, counts.reports);
         return (true, 0, 0, counts.moves, counts.answers, counts.reports);
+    }
+    // solhint-enable code-complexity
+
+    function _dailyBrainStep(uint128 pos, uint128 det, uint8[5] memory noise) internal pure returns (uint128) {
+        Night memory n;
+        n.free = CityMapData.WALK & ~det;
+        n.threat2 = Grid.reach(det, 2, CityMapData.WALK);
+        n.threat3 = Grid.reach(det, 3, CityMapData.WALK);
+        uint128[5] memory cands = [
+            pos,
+            pos >> 12,
+            (pos & ~CityMapData.COL11) << 1,
+            (pos << 12) & CityMapData.ALL,
+            (pos & ~CityMapData.COL0) >> 1
+        ];
+        uint8[5] memory scores;
+        for (uint8 index = 0; index < 5; ++index) {
+            bool valid = index == 0 || (cands[index] & n.free) != 0;
+            if (valid) scores[index] = _score(cands[index], pos, n, index, noise[index]);
+        }
+        uint128 chosen = cands[0];
+        uint8 best = scores[0];
+        for (uint8 index = 1; index < 5; ++index) {
+            if (scores[index] > best) {
+                best = scores[index];
+                chosen = cands[index];
+            }
+        }
+        return chosen;
+    }
+
+    function _validDailyOrder(uint8 from, uint8 to, bool search) internal pure returns (bool) {
+        if (to > 119 || (CityMapData.WALK & Grid.bit(to)) == 0) return false;
+        uint8 steps = search ? CityMapData.DET_STEPS : CityMapData.SPRINT_STEPS;
+        return (Grid.reach(Grid.bit(from), steps, CityMapData.WALK) & Grid.bit(to)) != 0;
+    }
+
+    function _verifyDailyAction(
+        DailyReveal memory r,
+        uint256 index,
+        uint8[] memory cells
+    ) internal pure returns (uint8 failCode, bool captured) {
+        uint16 hunter = r.hunters[index];
+        uint8 step = r.actionSteps[index];
+        if (hunter > r.hunterCount - 1 || step > r.path.length - 1) return (8, false);
+        if (r.fromCells[index] != cells[hunter]) return (8, false);
+        if (!_validDailyOrder(r.fromCells[index], r.toCells[index], r.searched[index])) return (8, false);
+        captured = r.path[step] == Grid.bit(r.toCells[index]);
+        uint8 expected = captured ? 0 : (r.searched[index] ? _searchCode(r.path, step, r.toCells[index]) : 0);
+        if (r.codes[index] != expected) return (5, false);
+        cells[hunter] = r.toCells[index];
+        return (0, captured);
+    }
+
+    function _verifyDailyActions(
+        DailyReveal memory r,
+        uint8[] memory cells
+    ) internal pure returns (DailyVerification memory result) {
+        uint8 previousStep;
+        for (uint256 index = 0; index < r.hunters.length; ++index) {
+            uint8 step = r.actionSteps[index];
+            if (step < previousStep) {
+                result.failCode = 8;
+                result.failTurn = step == 0 ? 1 : step;
+                return result;
+            }
+            bool captured;
+            (result.failCode, captured) = _verifyDailyAction(r, index, cells);
+            if (result.failCode != 0) {
+                result.failTurn = step == 0 ? 1 : step;
+                return result;
+            }
+            if (r.searched[index] && !captured) ++result.answers;
+            result.capturedAny = result.capturedAny || captured;
+            previousStep = step;
+        }
+    }
+
+    function _verifyDailyStep(
+        DailyReveal memory r,
+        uint256 index,
+        Counts memory counts
+    ) internal pure returns (uint8 failCode) {
+        uint128 current = r.path[index];
+        uint128 next = r.path[index + 1];
+        uint128 det = r.detMasks[index];
+        if ((det & ~CityMapData.WALK) != 0) return 3;
+        if ((next != current && (Grid.neighbors(current) & next) == 0) || (next != current && (det & next) != 0))
+            return 3;
+        uint8[5] memory noise;
+        for (uint8 candidate = 0; candidate < 5; ++candidate) {
+            uint256 noiseIndex = index * 5 + candidate;
+            if (r.noise[noiseIndex] > 7) return 4;
+            noise[candidate] = r.noise[noiseIndex];
+        }
+        if (_dailyBrainStep(current, det, noise) != next) return 4;
+        ++counts.moves;
+        ++counts.reports;
+        return 0;
+    }
+
+    function _verifyDailySteps(DailyReveal memory r) internal pure returns (DailyVerification memory result) {
+        Counts memory counts;
+        for (uint256 index = 0; index < r.detMasks.length; ++index) {
+            result.failCode = _verifyDailyStep(r, index, counts);
+            if (result.failCode != 0) {
+                result.failTurn = uint16(index + 1);
+                result.moves = counts.moves;
+                result.reports = counts.reports;
+                return result;
+            }
+        }
+        result.moves = counts.moves;
+        result.reports = counts.reports;
+    }
+
+    // solhint-disable code-complexity
+    /// @notice Replays a revealed daily case without exits.
+    /// @param r Decoded daily reveal record.
+    /// @return ok Whether the whole record verifies.
+    /// @return failCode Failure code, zero when ok.
+    /// @return failTurn One-based failure step.
+    /// @return moves Number of verified night moves.
+    /// @return answers Number of verified search answers.
+    /// @return reportsCount Number of verified camera steps.
+    function verifyDaily(DailyReveal memory r) public pure returns (bool, uint8, uint16, uint16, uint16, uint16) {
+        if (r.path.length == 0 || !_isStart(r.path[0])) return (false, 1, 0, 0, 0, 0);
+        uint256 stepCount = r.detMasks.length;
+        if (r.path.length != stepCount + 1) return (false, 2, uint16(stepCount), 0, 0, 0);
+        if (stepCount > 48) return (false, 6, 49, 0, 0, 0);
+        if (r.hunterCount == 0 || r.hunterCount > 64) return (false, 8, 0, 0, 0, 0);
+        if (r.noise.length != stepCount * 5) return (false, 4, uint16(stepCount), 0, 0, 0);
+        if (
+            r.hunters.length != r.actionSteps.length ||
+            r.hunters.length != r.fromCells.length ||
+            r.hunters.length != r.toCells.length ||
+            r.hunters.length != r.searched.length ||
+            r.hunters.length != r.codes.length
+        ) return (false, 8, uint16(r.hunters.length), 0, 0, 0);
+        for (uint256 index = 0; index < r.path.length; ++index) {
+            if (!Grid.isOneHot(r.path[index]) || (r.path[index] & CityMapData.WALK) == 0) {
+                return (false, 2, uint16(index), 0, 0, 0);
+            }
+        }
+
+        uint8[] memory cells = new uint8[](r.hunterCount);
+        uint8[3] memory precinct = [CityMapData.PRECINCT_0, CityMapData.PRECINCT_1, CityMapData.PRECINCT_2];
+        for (uint16 hunter = 0; hunter < r.hunterCount; ++hunter) {
+            cells[hunter] = precinct[hunter % 3];
+        }
+        DailyVerification memory actionResult = _verifyDailyActions(r, cells);
+        if (actionResult.failCode != 0) {
+            return (false, actionResult.failCode, actionResult.failTurn, 0, actionResult.answers, 0);
+        }
+        DailyVerification memory stepResult = _verifyDailySteps(r);
+        if (stepResult.failCode != 0) {
+            return (
+                false,
+                stepResult.failCode,
+                stepResult.failTurn,
+                stepResult.moves,
+                actionResult.answers,
+                stepResult.reports
+            );
+        }
+
+        if (r.finalStatus != 2 && r.finalStatus != 3) {
+            return (false, 6, uint16(stepCount), stepResult.moves, actionResult.answers, stepResult.reports);
+        }
+        if (r.finalStatus == 2 && !actionResult.capturedAny) {
+            return (false, 6, uint16(stepCount), stepResult.moves, actionResult.answers, stepResult.reports);
+        }
+        return (true, 0, 0, stepResult.moves, actionResult.answers, stepResult.reports);
     }
     // solhint-enable code-complexity
 }
