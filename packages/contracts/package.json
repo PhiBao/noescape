@@ -16,7 +16,7 @@
     "postcompile": "pnpm run typechain",
     "prettier:check": "prettier --check \"contracts/**/*.sol\" \"*.{js,json,yml}\"",
     "prettier:write": "prettier --write \"contracts/**/*.sol\" \"*.{js,json,yml}\"",
-    "test": "cross-env NODE_OPTIONS=--experimental-strip-types hardhat test",
+    "test": "cross-env NODE_OPTIONS=--experimental-strip-types hardhat test --grep \"^(?!mw\\.join)\" && cross-env NODE_OPTIONS=--experimental-strip-types hardhat test test/mw.join.test.ts",
     "test:sepolia": "hardhat test --network sepolia",
     "build:ts": "tsc --project tsconfig.json",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
