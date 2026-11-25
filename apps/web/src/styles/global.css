@@ -188,3 +188,266 @@ footer a + a {
 .notice--success {
   border-left-color: var(--verified);
 }
+
+.map-sheet {
+  width: min(100%, 860px);
+  padding: 28px;
+  overflow: visible;
+}
+
+.map-canvas {
+  position: relative;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.map-streets line {
+  stroke: var(--street);
+  stroke-width: 1;
+}
+
+.map-buildings rect {
+  fill: var(--paper-2);
+}
+
+.map-river rect {
+  fill: var(--water);
+}
+
+.map-river path {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1;
+  opacity: 0.25;
+}
+
+.map-bridges rect {
+  fill: var(--paper-2);
+  stroke: var(--street);
+  stroke-width: 1;
+}
+
+.map-bridges line {
+  stroke: var(--street);
+  stroke-width: 1;
+}
+
+.map-reach rect {
+  fill: var(--brass);
+}
+
+.map-plus-preview rect {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.map-keyboard-target rect {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.map-margin-labels text {
+  fill: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.map-label--column {
+  text-anchor: middle;
+}
+
+.map-label--row {
+  dominant-baseline: central;
+  text-anchor: end;
+}
+
+.map-exit__gate {
+  fill: var(--paper);
+  stroke: var(--grease);
+  stroke-width: 2;
+}
+
+.map-exits path {
+  fill: none;
+  stroke: var(--grease);
+  stroke-width: 2;
+}
+
+.map-exit__label {
+  fill: var(--grease);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.map-precinct {
+  fill: var(--brass);
+}
+
+.map-cell {
+  fill: transparent;
+  cursor: default;
+}
+
+.map-cell--reachable {
+  cursor: pointer;
+}
+
+.map-cell--reachable:hover {
+  fill: var(--brass);
+  opacity: 0.08;
+}
+
+.map-cell--reachable:active {
+  fill: var(--brass);
+  opacity: 0.16;
+}
+
+.map-camera-control {
+  cursor: help;
+}
+
+.map-camera__focus {
+  fill: transparent;
+  stroke: none;
+  pointer-events: none;
+}
+
+.map-camera__hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
+.map-camera path,
+.map-camera circle:not(.map-camera__focus):not(.map-camera__hit) {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.map-camera-control:focus-visible {
+  outline: none;
+}
+
+.map-camera-control:focus-visible .map-camera__focus {
+  stroke: var(--brass);
+  stroke-width: 2;
+}
+
+.map-camera-control:hover path,
+.map-camera-control:hover circle:not(.map-camera__focus):not(.map-camera__hit) {
+  stroke: var(--brass);
+}
+
+.map-tooltip {
+  position: absolute;
+  z-index: 2;
+  max-width: 180px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--chalk);
+  background: var(--desk);
+  box-shadow: var(--paper-shadow);
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  line-height: var(--leading-mono);
+  pointer-events: none;
+  transform: translate(-50%, -130%);
+}
+
+.map-pin {
+  cursor: pointer;
+  transition: transform var(--t-pin);
+}
+
+.map-pin__body {
+  fill: var(--brass);
+  stroke: var(--desk);
+  stroke-width: 1;
+}
+
+.map-pin:hover .map-pin__body {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.map-pin:active .map-pin__body {
+  stroke-width: 3;
+}
+
+.map-pin__selection {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.map-pin__focus {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 2;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.map-pin__initial {
+  fill: var(--desk);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.map-pin:focus-visible {
+  outline: none;
+}
+
+.map-pin:focus-visible .map-pin__focus {
+  opacity: 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 767px) {
+  main {
+    padding-inline: var(--space-2);
+  }
+
+  .map-sheet {
+    width: calc(100% + 4px);
+    margin-left: -4px;
+    padding: 16px 2px 24px 12px;
+  }
+
+  .map-margin-labels text {
+    font-size: 11px;
+  }
+
+  .map-exit__label {
+    font-size: 11px;
+  }
+}

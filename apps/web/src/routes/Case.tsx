@@ -39,6 +39,7 @@ export function Case() {
         search={(state.orders.searchFlags & (1 << selectedDetective)) !== 0}
         onSelectDetective={setSelectedDetective}
         onOrdersChange={setOrders}
+        onSearchToggle={toggleSearch}
       />
       <OrdersPanel
         state={state}
