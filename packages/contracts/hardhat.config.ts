@@ -11,6 +11,7 @@ import "solidity-coverage";
 
 import "./tasks/case";
 import "./tasks/mostwanted";
+import "./tasks/ops";
 import "./tasks/spike";
 import "./tasks/token";
 import "./tasks/verify";
