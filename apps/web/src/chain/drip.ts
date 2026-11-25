@@ -105,6 +105,7 @@ async function pollBalance(address: Address, startingBalance: bigint): Promise<b
 export async function requestDrip(address: Address): Promise<DripResult> {
   if (config.turnstileSiteKey.trim() === "") return { error: "unknown" };
   const startingBalance = await publicClient.getBalance({ address });
+  if (startingBalance >= 10_000_000_000_000_000n) return { error: "alreadyFunded" };
   try {
     await loadTurnstileScript();
     const challenge = await requestToken(config.turnstileSiteKey);
