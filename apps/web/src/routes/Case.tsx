@@ -7,6 +7,7 @@ import { getNoEscapeCaseReader } from "../chain/contracts.ts";
 import { mapError } from "../chain/errors.ts";
 import { ensurePermits, publicDecrypt, userDecrypt } from "../chain/zama.ts";
 import { type DecodedTurn, useCase } from "../game/useCase.ts";
+import { Coach } from "../ui/Coach.tsx";
 import { type DispatchInfo, DispatchStrip } from "../ui/DispatchStrip.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
 import { OrdersPanel } from "../ui/OrdersPanel.tsx";
@@ -333,77 +334,85 @@ export function Case() {
   return (
     <main style={outerStyle}>
       <h1 style={{ marginBottom: "var(--space-5)" }}>Case #{caseId.toString()}</h1>
-      <div style={columnsStyle}>
-        <div style={mapStyle}>
-          <div ref={mapRef} style={{ position: "relative" }}>
-            <MapBoard
-              cells={state.cells}
-              orders={state.orders}
-              selectedDetective={selectedDetective}
-              search={(state.orders.searchFlags & (1 << selectedDetective)) !== 0}
-              onSelectDetective={setSelectedDetective}
-              onOrdersChange={setOrders}
-              onSearchToggle={toggleSearch}
-            />
-            {overlayRect.width > 0 ? (
-              <svg
-                className="case-stamps"
-                viewBox={`0 0 ${W} ${H}`}
-                aria-hidden="true"
+      <div style={{ position: "relative" }}>
+        <div style={columnsStyle}>
+          <div style={mapStyle}>
+            <div ref={mapRef} style={{ position: "relative" }}>
+              <MapBoard
+                cells={state.cells}
+                orders={state.orders}
+                selectedDetective={selectedDetective}
+                search={(state.orders.searchFlags & (1 << selectedDetective)) !== 0}
+                onSelectDetective={setSelectedDetective}
+                onOrdersChange={setOrders}
+                onSearchToggle={toggleSearch}
+              />
+              {overlayRect.width > 0 ? (
+                <svg
+                  className="case-stamps"
+                  viewBox={`0 0 ${W} ${H}`}
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: overlayRect.left,
+                    top: overlayRect.top,
+                    width: overlayRect.width,
+                    height: overlayRect.height,
+                    overflow: "visible",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {stamps}
+                  {sightings}
+                </svg>
+              ) : null}
+            </div>
+          </div>
+          <aside style={asideStyle}>
+            <TurnClock completedTurns={state.turn} phase={state.phase} />
+            <details key={layout} open={layout === "mobile" ? undefined : true}>
+              <summary
                 style={{
-                  position: "absolute",
-                  left: overlayRect.left,
-                  top: overlayRect.top,
-                  width: overlayRect.width,
-                  height: overlayRect.height,
-                  overflow: "visible",
-                  pointerEvents: "none",
+                  display: layout === "mobile" ? "flex" : "none",
+                  minHeight: "var(--space-7)",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-mono)",
+                  color: "var(--chalk)",
                 }}
               >
-                {stamps}
-                {sightings}
-              </svg>
-            ) : null}
-          </div>
-        </div>
-        <aside style={asideStyle}>
-          <TurnClock completedTurns={state.turn} phase={state.phase} />
-          <details key={layout} open={layout === "mobile" ? undefined : true}>
-            <summary
-              style={{
-                display: layout === "mobile" ? "flex" : "none",
-                minHeight: "var(--space-7)",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                fontFamily: "var(--font-mono)",
-                color: "var(--chalk)",
-              }}
-            >
-              <span>Send orders</span>
-              <span>{hourOf(Math.min(clockTurn, TURNS))}</span>
-            </summary>
-            <OrdersPanel
-              state={state}
-              selectedDetective={selectedDetective}
-              onSelectDetective={setSelectedDetective}
-              onSearchToggle={toggleSearch}
-              onSend={() => void sendTurn()}
-              onRetry={() => void retry()}
+                <span>Send orders</span>
+                <span>{hourOf(Math.min(clockTurn, TURNS))}</span>
+              </summary>
+              <OrdersPanel
+                state={state}
+                selectedDetective={selectedDetective}
+                onSelectDetective={setSelectedDetective}
+                onSearchToggle={toggleSearch}
+                onSend={() => void sendTurn()}
+                onRetry={() => void retry()}
+              />
+            </details>
+            <DispatchStrip phase={state.phase} info={dispatch} now={now} />
+            <RadioLog
+              entries={entries}
+              cellsByTurn={overlayCells}
+              collapsible={layout === "mobile"}
             />
-          </details>
-          <DispatchStrip phase={state.phase} info={dispatch} now={now} />
-          <RadioLog
-            entries={entries}
-            cellsByTurn={overlayCells}
-            collapsible={layout === "mobile"}
-          />
-          {historyError !== "" ? (
-            <p role="alert" style={{ color: "var(--chalk-2)" }}>
-              {historyError}
-            </p>
-          ) : null}
-        </aside>
+            {historyError !== "" ? (
+              <p role="alert" style={{ color: "var(--chalk-2)" }}>
+                {historyError}
+              </p>
+            ) : null}
+          </aside>
+        </div>
+        <Coach
+          caseId={caseId}
+          displayTurn={clockTurn}
+          planning={state.phase === "planning"}
+          layout={layout}
+        />
       </div>
     </main>
   );
