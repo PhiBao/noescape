@@ -154,7 +154,7 @@ export function Title() {
         overflow: "hidden",
       }}
     >
-      <style>{`.title-map .map-pins,.title-map .map-cameras,.title-map .map-cells{display:none}`}</style>
+      <style>{`.title-map .map-pins,.title-map .map-cameras,.title-map .map-cells,.title-map .map-key{display:none}`}</style>
       <div style={{ position: "relative", zIndex: 1, width: "min(100%, 560px)" }}>
         <h1>
           <Wordmark />
@@ -227,6 +227,28 @@ export function Title() {
         >
           Runs on Sepolia · encrypted with Zama FHEVM · no wallet needed
         </p>
+        <section aria-label="How to play" style={{ marginTop: "var(--space-5)", maxWidth: "60ch" }}>
+          <h2 style={{ marginBottom: "var(--space-2)" }}>How to play</h2>
+          <ol
+            style={{
+              margin: 0,
+              paddingLeft: "var(--space-5)",
+              color: "var(--chalk-2)",
+              fontSize: "var(--text-small)",
+              lineHeight: "var(--leading-small)",
+            }}
+          >
+            <li>Take the case — a burner key is made in your browser. No wallet needed.</li>
+            <li>
+              Each hour, select a detective, click a brass square, choose Search or Sprint, then
+              send orders.
+            </li>
+            <li>
+              Read the stamps: NOTHING, COLD or FRESH tell you how close the trail was. Catch the
+              fugitive before dawn.
+            </li>
+          </ol>
+        </section>
         {showFlow ? (
           <div
             aria-live="polite"
@@ -293,9 +315,9 @@ export function Title() {
           inert
           style={{
             position: "absolute",
-            right: "-52vw",
+            right: "4vw",
             top: "50%",
-            width: "min(1200px, 100vw)",
+            width: "min(420px, 33vw)",
             transform: "translateY(-50%)",
             pointerEvents: "none",
           }}

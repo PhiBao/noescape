@@ -16,9 +16,9 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
   const currentTurn = inFlight || planning ? completedTurns + 1 : Math.max(completedTurns, 1);
 
   const status = inFlight
-    ? `Resolving ${hourOf(currentTurn)} — waiting for the block and KMS decryption`
+    ? `Resolving ${hourOf(currentTurn)} — waiting for the report`
     : planning
-      ? `Planning ${hourOf(currentTurn)} — send your orders`
+      ? `Planning ${hourOf(currentTurn)} — send orders`
       : closed
         ? `Case closed at ${hourOf(Math.min(currentTurn, TURNS))}`
         : "Opening the case file";
@@ -88,8 +88,7 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
           color: "var(--chalk-2)",
         }}
       >
-        White = played · solid brass = resolving · outlined brass = ready · dark = ahead. Not a
-        control.
+        White = past · brass = current hour · dark = ahead. Not a control.
       </p>
     </section>
   );

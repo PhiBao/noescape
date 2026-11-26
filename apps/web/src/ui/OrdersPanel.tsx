@@ -65,6 +65,16 @@ export function OrdersPanel({
   return (
     <section aria-label="Orders">
       <h2 style={{ marginBottom: "var(--space-3)" }}>Detectives</h2>
+      <p
+        style={{
+          marginBottom: "var(--space-3)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono)",
+          color: "var(--chalk-2)",
+        }}
+      >
+        Pick a detective → choose a brass square → Search or Sprint → Send orders.
+      </p>
       <div style={{ display: "grid", gap: "var(--space-2)" }}>
         {DETECTIVES.map((name, index) => {
           const from = state.cells[index] ?? 0;
