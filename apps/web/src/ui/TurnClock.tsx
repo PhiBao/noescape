@@ -31,9 +31,12 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
           return (
             <div
               key={hourOf(turn)}
-              title={hourOf(turn)}
+              title={`${hourOf(turn)} · ${past ? "already played" : active ? "current hour" : "still ahead"}`}
+              role="img"
+              aria-label={`${hourOf(turn)} ${past ? "already played" : active ? "current hour" : "still ahead"}`}
               style={{
                 height: "6px",
+                cursor: "default",
                 border: `1px solid ${active ? "var(--brass)" : "var(--desk-line)"}`,
                 background: past ? "var(--chalk)" : active ? "var(--brass)" : "var(--desk-line)",
               }}
@@ -44,6 +47,16 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
       <h2 style={{ marginTop: "var(--space-3)" }}>
         Night 1 · {hourOf(Math.min(currentTurn, TURNS))}
       </h2>
+      <p
+        style={{
+          marginTop: "var(--space-1)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono)",
+          color: "var(--chalk-2)",
+        }}
+      >
+        White = hours played · brass = this hour · dark = ahead. Progress only, not a control.
+      </p>
     </section>
   );
 }

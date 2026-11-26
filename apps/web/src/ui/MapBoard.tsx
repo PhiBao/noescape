@@ -381,6 +381,13 @@ export function MapBoard({
               const { x, y } = xy(cell);
               const cellReachable = (reachable & bit(cell)) !== 0n;
               const occupied = orders.to.includes(cell);
+              const near = (searchReach & bit(cell)) !== 0n;
+              const cellLabel = `${columnLabels[x]}${y + 1}`;
+              const tooltip = cellReachable
+                ? near
+                  ? `Cell ${cellLabel} — reachable in up to 2 steps; you can search here`
+                  : `Cell ${cellLabel} — reachable only by sprinting 3 steps; no search here`
+                : `Cell ${cellLabel} — not reachable from ${DETECTIVES[selectedDetective]}; buildings and water cannot be entered`;
               return (
                 // biome-ignore lint/a11y/useSemanticElements: Interactive SVG cells cannot contain HTML buttons.
                 <rect
@@ -392,11 +399,13 @@ export function MapBoard({
                   width={CELL_SIZE}
                   height={CELL_SIZE}
                   role="button"
-                  aria-label={`Cell ${cell}, ${columnLabels[x]}${y + 1}${cellReachable ? ", reachable" : ""}`}
+                  aria-label={tooltip}
                   aria-disabled={!cellReachable && !occupied}
                   tabIndex={-1}
                   onClick={() => chooseCell(cell)}
-                />
+                >
+                  <title>{tooltip}</title>
+                </rect>
               );
             })}
           </g>
@@ -461,6 +470,63 @@ export function MapBoard({
           </div>
         ) : null}
       </div>
+      <details
+        className="map-key"
+        open
+        style={{
+          marginTop: "var(--space-3)",
+          color: "var(--chalk-2)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono)",
+          lineHeight: "var(--leading-mono)",
+        }}
+      >
+        <summary style={{ cursor: "pointer", color: "var(--chalk)" }}>
+          Map key — what can I do?
+        </summary>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--space-2) var(--space-4)",
+            marginTop: "var(--space-2)",
+          }}
+        >
+          <span>
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                width: "14px",
+                height: "8px",
+                marginRight: "6px",
+                background: "var(--brass)",
+                opacity: 0.5,
+              }}
+            />
+            brass tint — you can move here and search
+          </span>
+          <span>
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-block",
+                width: "14px",
+                height: "8px",
+                marginRight: "6px",
+                background: "var(--brass)",
+                opacity: 0.2,
+              }}
+            />
+            faint tint — sprint only, no search
+          </span>
+          <span>dashed outline — search preview</span>
+          <span>tan blocks / blue water — cannot enter</span>
+          <span>red gates — exits the fugitive can use</span>
+          <span>camera ring — public sighting</span>
+          <span>NOTHING / COLD / FRESH — no trail / cold trail / fresh trail, always true</span>
+        </div>
+      </details>
       <p className="sr-only" aria-live="polite">
         {focusedDetective !== null && keyboardTarget !== null
           ? `${DETECTIVES[focusedDetective]} target cell ${keyboardTarget}. Enter to confirm.`

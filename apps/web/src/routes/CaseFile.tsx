@@ -613,9 +613,30 @@ export function CaseFile() {
               ) : null}
             </div>
             <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "var(--space-3)",
+                marginTop: "var(--space-4)",
+              }}
+            >
+              <p style={{ fontFamily: "var(--font-mono)", color: "var(--chalk-2)" }}>
+                Click an hour to inspect it. White = played · brass = selected · dark = unplayed.
+              </p>
+              <Button
+                type="button"
+                disabled={selectedTurn === record.turns.length}
+                onClick={() => setSelectedTurn(record.turns.length)}
+              >
+                Back to latest
+              </Button>
+            </div>
+            <div
               role="slider"
               tabIndex={0}
-              aria-label="Turn scrubber"
+              aria-label="Turn scrubber — click an hour to inspect, use arrow keys to move"
               aria-valuemin={1}
               aria-valuemax={Math.max(record.turns.length, 1)}
               aria-valuenow={selectedTurn}
@@ -649,6 +670,7 @@ export function CaseFile() {
                   <button
                     key={hourOf(turnNo)}
                     type="button"
+                    title={`${hourOf(turnNo)} · turn ${turnNo} of ${record.turns.length}${turnNo > record.turns.length ? " — not played" : ""}`}
                     aria-label={`Turn ${turnNo}, ${hourOf(turnNo)}`}
                     aria-pressed={turnNo === selectedTurn}
                     disabled={turnNo > record.turns.length}

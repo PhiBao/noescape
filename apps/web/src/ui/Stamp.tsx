@@ -32,6 +32,10 @@ export function Stamp({ caseId, turn, detective, cell, code, hour, latest }: Sta
       transform={`translate(${x + 0.5} ${y + 0.5}) rotate(${rotation})`}
       opacity={latest ? 0.9 : 0.35}
     >
+      <title>
+        {label} — {code === 2 ? "fresh trail" : code === 1 ? "cold trail" : "no trail here"}; a true
+        clue from your encrypted search at {hour}
+      </title>
       <rect
         x="-0.62"
         y="-0.25"
@@ -77,6 +81,7 @@ export function Sighting({ cell, hour, latest }: SightingProps) {
   const { x, y } = xy(cell);
   return (
     <g transform={`translate(${x + 0.5} ${y + 0.5})`} opacity={latest ? 0.9 : 0.35}>
+      <title>Camera sighting at {hour} — the fugitive was seen near this square</title>
       <path
         d="M-0.34-0.18Q0-0.34 0.34-0.18Q0.48 0 0.32 0.2Q0 0.36-0.32 0.18Q-0.48 0-0.34-0.18Z"
         fill="none"
