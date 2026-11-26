@@ -55,7 +55,18 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
           color: "var(--chalk-2)",
         }}
       >
-        White = hours played · brass = this hour · dark = ahead. Progress only, not a control.
+        White = played · brass = being resolved right now · dark = ahead. Not a control.
+      </p>
+      <p
+        style={{
+          marginTop: "var(--space-1)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono)",
+          color: "var(--chalk-2)",
+        }}
+      >
+        When the report is decoded, brass turns white and the board redraws for the next hour. That
+        is the game advancing, not a page reload.
       </p>
     </section>
   );

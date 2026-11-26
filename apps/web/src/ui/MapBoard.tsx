@@ -484,48 +484,98 @@ export function MapBoard({
         <summary style={{ cursor: "pointer", color: "var(--chalk)" }}>
           Map key — what can I do?
         </summary>
-        <div
+        <ul
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "var(--space-2) var(--space-4)",
-            marginTop: "var(--space-2)",
+            listStyle: "none",
+            margin: "var(--space-2) 0 0",
+            padding: 0,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+            gap: "var(--space-1) var(--space-5)",
           }}
         >
-          <span>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <span
               aria-hidden="true"
               style={{
-                display: "inline-block",
-                width: "14px",
+                width: "16px",
                 height: "8px",
-                marginRight: "6px",
+                flex: "0 0 16px",
                 background: "var(--brass)",
                 opacity: 0.5,
               }}
             />
-            brass tint — you can move here and search
-          </span>
-          <span>
+            Brass tint — you can move here and search.
+          </li>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <span
               aria-hidden="true"
               style={{
-                display: "inline-block",
-                width: "14px",
+                width: "16px",
                 height: "8px",
-                marginRight: "6px",
+                flex: "0 0 16px",
                 background: "var(--brass)",
                 opacity: 0.2,
               }}
             />
-            faint tint — sprint only, no search
-          </span>
-          <span>dashed outline — search preview</span>
-          <span>tan blocks / blue water — cannot enter</span>
-          <span>red gates — exits the fugitive can use</span>
-          <span>camera ring — public sighting</span>
-          <span>NOTHING / COLD / FRESH — no trail / cold trail / fresh trail, always true</span>
-        </div>
+            Faint tint — sprint only, no search.
+          </li>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: "16px",
+                height: "8px",
+                flex: "0 0 16px",
+                border: "2px dashed var(--brass)",
+              }}
+            />
+            Dashed outline — search preview.
+          </li>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: "16px",
+                height: "8px",
+                flex: "0 0 16px",
+                background: "var(--paper-2)",
+                border: "1px solid var(--street)",
+              }}
+            />
+            Tan blocks and blue water — cannot enter.
+          </li>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: "16px",
+                height: "8px",
+                flex: "0 0 16px",
+                background: "var(--paper)",
+                border: "2px solid var(--grease)",
+              }}
+            />
+            Red gates — exits the fugitive can use.
+          </li>
+          <li style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: "14px",
+                height: "14px",
+                flex: "0 0 16px",
+                borderRadius: "50%",
+                border: "2px solid var(--ink)",
+              }}
+            />
+            Camera ring — a public sighting.
+          </li>
+          <li style={{ gridColumn: "1 / -1" }}>
+            NOTHING / COLD / FRESH — no trail / cold trail / fresh trail. Every stamp is a true
+            clue.
+          </li>
+        </ul>
       </details>
       <p className="sr-only" aria-live="polite">
         {focusedDetective !== null && keyboardTarget !== null
