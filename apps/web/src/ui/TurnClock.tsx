@@ -11,8 +11,17 @@ export function hourOf(turn: number): string {
 
 export function TurnClock({ completedTurns, phase }: TurnClockProps) {
   const inFlight = phase === "sending" || phase === "mining" || phase === "decoding";
-  const currentTurn =
-    inFlight || phase === "planning" ? completedTurns + 1 : Math.max(completedTurns, 1);
+  const planning = phase === "planning";
+  const closed = phase === "ended" || phase === "verified";
+  const currentTurn = inFlight || planning ? completedTurns + 1 : Math.max(completedTurns, 1);
+
+  const status = inFlight
+    ? `Resolving ${hourOf(currentTurn)} — waiting for the block and KMS decryption`
+    : planning
+      ? `Planning ${hourOf(currentTurn)} — send your orders`
+      : closed
+        ? `Case closed at ${hourOf(Math.min(currentTurn, TURNS))}`
+        : "Opening the case file";
 
   return (
     <section aria-label="Turn clock">
@@ -27,18 +36,32 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
         {Array.from({ length: TURNS }, (_, index) => {
           const turn = index + 1;
           const past = turn <= completedTurns;
-          const active = inFlight && turn === currentTurn;
+          const resolving = inFlight && turn === currentTurn;
+          const ready = planning && turn === currentTurn;
+          const mark = past
+            ? "already played"
+            : resolving
+              ? "resolving now"
+              : ready
+                ? "ready for orders"
+                : "still ahead";
           return (
             <div
               key={hourOf(turn)}
-              title={`${hourOf(turn)} · ${past ? "already played" : active ? "current hour" : "still ahead"}`}
+              title={`${hourOf(turn)} · ${mark}`}
               role="img"
-              aria-label={`${hourOf(turn)} ${past ? "already played" : active ? "current hour" : "still ahead"}`}
+              aria-label={`${hourOf(turn)} ${mark}`}
               style={{
                 height: "6px",
                 cursor: "default",
-                border: `1px solid ${active ? "var(--brass)" : "var(--desk-line)"}`,
-                background: past ? "var(--chalk)" : active ? "var(--brass)" : "var(--desk-line)",
+                border: `1px solid ${resolving || ready ? "var(--brass)" : "var(--desk-line)"}`,
+                background: past
+                  ? "var(--chalk)"
+                  : resolving
+                    ? "var(--brass)"
+                    : ready
+                      ? "var(--desk)"
+                      : "var(--desk-line)",
               }}
             />
           );
@@ -52,10 +75,10 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
           marginTop: "var(--space-1)",
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-mono)",
-          color: "var(--chalk-2)",
+          color: "var(--chalk)",
         }}
       >
-        White = played · brass = being resolved right now · dark = ahead. Not a control.
+        {status}
       </p>
       <p
         style={{
@@ -65,8 +88,8 @@ export function TurnClock({ completedTurns, phase }: TurnClockProps) {
           color: "var(--chalk-2)",
         }}
       >
-        When the report is decoded, brass turns white and the board redraws for the next hour. That
-        is the game advancing, not a page reload.
+        White = played · solid brass = resolving · outlined brass = ready · dark = ahead. Not a
+        control.
       </p>
     </section>
   );
