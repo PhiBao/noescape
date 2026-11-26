@@ -432,14 +432,20 @@ footer a + a {
   border: 0;
 }
 
+@media (max-width: 1023px) {
+  .title-map {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   main {
     padding-inline: var(--space-2);
   }
 
   .map-sheet {
-    width: calc(100% + 4px);
-    margin-left: -4px;
+    width: calc(100% + 8px);
+    margin-left: -8px;
     padding: 16px 2px 24px 12px;
   }
 

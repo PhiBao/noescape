@@ -87,6 +87,7 @@ export function MostWanted() {
         gap: "var(--space-5)",
       }}
     >
+      <h1 className="sr-only">Most Wanted</h1>
       <section
         aria-label="Most Wanted header"
         style={{

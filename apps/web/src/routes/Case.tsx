@@ -295,6 +295,8 @@ export function Case() {
   }
 
   const latestTurn = entries.reduce((latest, entry) => Math.max(latest, entry.turn), 0);
+  const latestEntry = entries[entries.length - 1];
+  const stampWords = ["NOTHING", "COLD", "FRESH"] as const;
   const stamps = entries.flatMap((entry) => {
     const cells = overlayCells[entry.turn];
     if (cells === undefined) return [];
@@ -445,6 +447,14 @@ export function Case() {
               cellsByTurn={overlayCells}
               collapsible={layout === "mobile"}
             />
+            <p className="sr-only" aria-live="polite" aria-atomic="true">
+              {latestEntry === undefined
+                ? ""
+                : `${hourOf(latestEntry.turn)} stamps: ${DETECTIVES.map((name, detective) => {
+                    const code = latestEntry.codes[detective];
+                    return `${name} ${code === null || code === undefined ? "no search" : (stampWords[code] ?? "NOTHING")}`;
+                  }).join("; ")}`}
+            </p>
             {shownError !== null ? (
               <Notice
                 tone="error"

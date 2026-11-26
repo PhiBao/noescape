@@ -86,10 +86,10 @@ async function findCaseTx(
 
 function useMobile(): boolean {
   const [mobile, setMobile] = useState(
-    () => typeof window !== "undefined" && window.innerWidth < 768,
+    () => typeof window !== "undefined" && window.innerWidth < 900,
   );
   useEffect(() => {
-    const onResize = () => setMobile(window.innerWidth < 768);
+    const onResize = () => setMobile(window.innerWidth < 900);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -441,6 +441,7 @@ export function CaseFile() {
         overflowX: "hidden",
       }}
     >
+      <h1 className="sr-only">Case file #{caseId.toString()}</h1>
       <p
         style={{
           fontFamily: "var(--font-mono)",
@@ -495,7 +496,14 @@ export function CaseFile() {
       ) : null}
       {record !== null ? (
         <div style={columnsStyle}>
-          <div style={{ flex: mobile ? "1 1 auto" : "0 1 62%", minWidth: 0, maxWidth: "860px" }}>
+          <div
+            style={{
+              flex: mobile ? "1 1 auto" : "0 1 62%",
+              minWidth: 0,
+              maxWidth: "860px",
+              width: mobile ? "100%" : undefined,
+            }}
+          >
             <div ref={mapRef} style={{ position: "relative" }}>
               <MapBoard
                 cells={turn?.to ?? [0, 1, 2]}
