@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" role="img" aria-labelledby="title desc">
+  <title id="title">Who can read what, when</title>
+  <desc id="desc">A table of game handles showing who can read each value during a case and after the case closes with KMS signatures. Fugitive values are readable by nobody, search codes only by the acting detective, and the turn report by everyone.</desc>
+  <defs>
+    <pattern id="grain" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="#EDE4D3"/>
+      <path d="M0 20H120M0 60H120M0 100H120" stroke="#DDD0B8" stroke-width="1" opacity="0.35"/>
+    </pattern>
+    <marker id="tick" markerWidth="8" markerHeight="8" refX="4" refY="4">
+      <circle cx="4" cy="4" r="3" fill="#A99E8C"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="780" fill="#15120F"/>
+  <rect x="32" y="32" width="1136" height="716" fill="url(#grain)" stroke="#3A322A" stroke-width="2"/>
+  <text x="64" y="96" fill="#E9E1D2" font-family="Big Shoulders Display, Impact, sans-serif" font-size="42" font-weight="700">Who can read what, when</text>
+  <text x="64" y="130" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">noescape · handles and ACLs · Sepolia</text>
+
+  <rect x="64" y="160" width="1072" height="56" fill="#211C17"/>
+  <text x="84" y="196" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="16">Thing</text>
+  <text x="430" y="196" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="16">During the case</text>
+  <text x="800" y="196" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="16">After close (KMS)</text>
+
+  <g font-family="IBM Plex Sans Condensed, Arial, sans-serif" font-size="19">
+    <g>
+      <rect x="64" y="216" width="1072" height="60" fill="#EDE4D3"/>
+      <text x="84" y="254" fill="#C2362B" font-weight="600">Fugitive position and path</text>
+      <text x="430" y="254" fill="#C2362B" font-weight="600">nobody — contract only</text>
+      <text x="800" y="254" fill="#1D1A16">everyone, with signatures</text>
+    </g>
+    <g>
+      <rect x="64" y="276" width="1072" height="60" fill="#DDD0B8"/>
+      <text x="84" y="314" fill="#C2362B" font-weight="600">Secret exit</text>
+      <text x="430" y="314" fill="#C2362B" font-weight="600">nobody</text>
+      <text x="800" y="314" fill="#1D1A16">everyone</text>
+    </g>
+    <g>
+      <rect x="64" y="336" width="1072" height="60" fill="#EDE4D3"/>
+      <text x="84" y="374" fill="#C2362B" font-weight="600">AI noise</text>
+      <text x="430" y="374" fill="#C2362B" font-weight="600">nobody</text>
+      <text x="800" y="374" fill="#1D1A16">everyone</text>
+    </g>
+    <g>
+      <rect x="64" y="396" width="1072" height="60" fill="#DDD0B8"/>
+      <text x="84" y="434" fill="#C8963E" font-weight="600">Search codes</text>
+      <text x="430" y="434" fill="#C8963E" font-weight="600">acting detective only</text>
+      <text x="800" y="434" fill="#1D1A16">everyone</text>
+    </g>
+    <g>
+      <rect x="64" y="456" width="1072" height="60" fill="#EDE4D3"/>
+      <text x="84" y="494" fill="#1D1A16" font-weight="600">Turn report (status + camera)</text>
+      <text x="430" y="494" fill="#1D1A16">everyone, each turn</text>
+      <text x="800" y="494" fill="#1D1A16">everyone</text>
+    </g>
+    <g>
+      <rect x="64" y="516" width="1072" height="60" fill="#DDD0B8"/>
+      <text x="84" y="554" fill="#1D1A16" font-weight="600">Detective positions</text>
+      <text x="430" y="554" fill="#1D1A16">everyone (your moves)</text>
+      <text x="800" y="554" fill="#1D1A16">everyone</text>
+    </g>
+    <g>
+      <rect x="64" y="576" width="1072" height="60" fill="#EDE4D3"/>
+      <text x="84" y="614" fill="#5B5246" font-weight="600">Daily pot / bounty</text>
+      <text x="430" y="614" fill="#5B5246">token + contract</text>
+      <text x="800" y="614" fill="#1D1A16">everyone at day close</text>
+    </g>
+  </g>
+
+  <line x1="416" y1="216" x2="416" y2="636" stroke="#C9BCA4" stroke-width="2"/>
+  <line x1="786" y1="216" x2="786" y2="636" stroke="#C9BCA4" stroke-width="2"/>
+
+  <circle cx="86" cy="690" r="9" fill="#C2362B"/>
+  <text x="104" y="697" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="15">fugitive information</text>
+  <circle cx="360" cy="690" r="9" fill="#C8963E"/>
+  <text x="378" y="697" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="15">your private information</text>
+  <circle cx="700" cy="690" r="9" fill="#E9E1D2"/>
+  <text x="718" y="697" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="15">public</text>
+  <text x="64" y="728" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">The relayer cannot decrypt a fugitive handle either: no address is ever granted one.</text>
+</svg>

@@ -45,6 +45,8 @@ The primary loop is **title → badge → case → orders → stamped clue → c
 4. A public report (status + camera) is produced each turn and decrypted with KMS signatures; the clear value is checked onchain before the next turn.
 5. At case end, two fixed batches of path/noise/code handles are decrypted and the contract re-runs the engine's rules, emitting `CaseVerified(id, ok, failCode, failTurn)`.
 
+![One turn — orders, encrypted AI, public report and KMS verification](docs/diagrams/one-turn.svg)
+
 ## What is encrypted
 
 | Thing                                   | Who can read it during a case  | When it becomes public                   |
@@ -57,6 +59,8 @@ The primary loop is **title → badge → case → orders → stamped clue → c
 | Detective positions                     | everyone (they are your moves) | always                                   |
 
 The same table is demonstrated live at https://noescape-case.vercel.app/secret.
+
+![Who can read what, when — handles and ACLs during a case and after close](docs/diagrams/who-can-read-what.svg)
 
 ## Fairness and verification
 
@@ -101,7 +105,7 @@ pnpm -F web e2e     # needs PREVIEW_URL and a funded E2E_BURNER_KEY
 
 ## Security and trust model
 
-The contract never grants a fugitive handle to an address; tests assert that the detective, another signer and the deployer all fail user decryption. No Solidity branch reads an encrypted value. Reentrancy is bounded by one-time flags and official token contracts. The GasTap has a Turnstile check, 24 h cooldown, balance check, daily cap and pause; its operator key holds only gas money and is separate from the owner key. The browser key lives only in `localStorage` and is never sent to a server. Full review with source evidence: [docs/security.md](docs/security.md).
+The contract never grants a fugitive handle to an address; tests assert that the detective, another signer and the deployer all fail user decryption. No Solidity branch reads an encrypted value. Reentrancy is bounded by one-time flags and official token contracts. The GasTap has a Turnstile check, 24 h cooldown, balance check, daily cap and pause; its operator key holds only gas money and is separate from the owner key. The browser key lives only in `localStorage` and is never sent to a server. Full review with source evidence: [docs/security.md](docs/security.md). Trust boundaries and liveness assumptions: [docs/trust-model.md](docs/trust-model.md).
 
 ## Real vs labelled
 

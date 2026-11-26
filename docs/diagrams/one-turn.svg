@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">One turn</title>
+  <desc id="desc">Flow of a single turn: public orders are validated in plaintext, capture and search codes are computed on ciphertext, the encrypted brain selects a move, a report is published and decrypted with KMS signatures, then the next turn begins. No plaintext fugitive position exists during the turn.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#C8963E"/>
+    </marker>
+    <pattern id="grain" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="#EDE4D3"/>
+      <path d="M0 20H120M0 60H120M0 100H120" stroke="#DDD0B8" stroke-width="1" opacity="0.35"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="720" fill="#15120F"/>
+  <rect x="32" y="28" width="1136" height="664" fill="url(#grain)" stroke="#3A322A" stroke-width="2"/>
+  <text x="64" y="86" fill="#E9E1D2" font-family="Big Shoulders Display, Impact, sans-serif" font-size="42" font-weight="700">One turn</text>
+  <text x="64" y="120" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">orders → encrypted move → public report → KMS → next turn</text>
+
+  <g font-family="IBM Plex Sans Condensed, Arial, sans-serif">
+    <g>
+      <rect x="60" y="170" width="230" height="122" rx="2" fill="#211C17" stroke="#C8963E" stroke-width="2"/>
+      <text x="80" y="202" fill="#C8963E" font-family="IBM Plex Mono, monospace" font-size="14">PLAINTEXT</text>
+      <text x="80" y="232" fill="#E9E1D2" font-size="20" font-weight="600">Orders</text>
+      <text x="80" y="258" fill="#A99E8C" font-size="16">cells + search flags</text>
+      <text x="80" y="280" fill="#A99E8C" font-size="16">signed by your burner</text>
+    </g>
+    <g>
+      <rect x="330" y="170" width="230" height="122" rx="2" fill="#211C17" stroke="#A99E8C" stroke-width="2"/>
+      <text x="350" y="202" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">PLAINTEXT</text>
+      <text x="350" y="232" fill="#E9E1D2" font-size="20" font-weight="600">validOrders</text>
+      <text x="350" y="258" fill="#A99E8C" font-size="16">reach and shared-cell rules</text>
+      <text x="350" y="280" fill="#A99E8C" font-size="16">rejects before any FHE work</text>
+    </g>
+    <g>
+      <rect x="600" y="170" width="230" height="122" rx="2" fill="#211C17" stroke="#C2362B" stroke-width="2"/>
+      <text x="620" y="202" fill="#C2362B" font-family="IBM Plex Mono, monospace" font-size="14">CIPHERTEXT</text>
+      <text x="620" y="232" fill="#E9E1D2" font-size="20" font-weight="600">Capture check</text>
+      <text x="620" y="258" fill="#A99E8C" font-size="16">FHE.and(pos, bit(to))</text>
+      <text x="620" y="280" fill="#A99E8C" font-size="16">FHE.ne against zero</text>
+    </g>
+    <g>
+      <rect x="870" y="170" width="230" height="122" rx="2" fill="#211C17" stroke="#C8963E" stroke-width="2"/>
+      <text x="890" y="202" fill="#C8963E" font-family="IBM Plex Mono, monospace" font-size="14">PRIVATE TO YOU</text>
+      <text x="890" y="232" fill="#E9E1D2" font-size="20" font-weight="600">Search codes</text>
+      <text x="890" y="258" fill="#A99E8C" font-size="16">FHE.select on caught</text>
+      <text x="890" y="280" fill="#A99E8C" font-size="16">allow(code, detective)</text>
+    </g>
+    <g>
+      <rect x="870" y="444" width="230" height="122" rx="2" fill="#211C17" stroke="#C2362B" stroke-width="2"/>
+      <text x="890" y="476" fill="#C2362B" font-family="IBM Plex Mono, monospace" font-size="14">CIPHERTEXT</text>
+      <text x="890" y="506" fill="#E9E1D2" font-size="20" font-weight="600">Encrypted brain</text>
+      <text x="890" y="532" fill="#A99E8C" font-size="16">noise + distance + camera</text>
+      <text x="890" y="554" fill="#A99E8C" font-size="16">FHE.select argmax</text>
+    </g>
+    <g>
+      <rect x="600" y="444" width="230" height="122" rx="2" fill="#211C17" stroke="#E9E1D2" stroke-width="2"/>
+      <text x="620" y="476" fill="#E9E1D2" font-family="IBM Plex Mono, monospace" font-size="14">PUBLIC EACH TURN</text>
+      <text x="620" y="506" fill="#E9E1D2" font-size="20" font-weight="600">Turn report</text>
+      <text x="620" y="532" fill="#A99E8C" font-size="16">status + camera handle</text>
+      <text x="620" y="554" fill="#A99E8C" font-size="16">makePubliclyDecryptable</text>
+    </g>
+    <g>
+      <rect x="330" y="444" width="230" height="122" rx="2" fill="#211C17" stroke="#2F5D3A" stroke-width="2"/>
+      <text x="350" y="476" fill="#2F5D3A" font-family="IBM Plex Mono, monospace" font-size="14">KMS SIGNATURES</text>
+      <text x="350" y="506" fill="#E9E1D2" font-size="20" font-weight="600">Verify clear</text>
+      <text x="350" y="532" fill="#A99E8C" font-size="16">checkSignatures</text>
+      <text x="350" y="554" fill="#A99E8C" font-size="16">status becomes outcome</text>
+    </g>
+    <g>
+      <rect x="60" y="444" width="230" height="122" rx="2" fill="#211C17" stroke="#A99E8C" stroke-width="2"/>
+      <text x="80" y="476" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">NEXT TURN</text>
+      <text x="80" y="506" fill="#E9E1D2" font-size="20" font-weight="600">New cells</text>
+      <text x="80" y="532" fill="#A99E8C" font-size="16">from public detective state</text>
+      <text x="80" y="554" fill="#A99E8C" font-size="16">path still encrypted</text>
+    </g>
+  </g>
+
+  <g stroke="#C8963E" stroke-width="3" fill="none" marker-end="url(#arrow)">
+    <path d="M290 231 H326"/>
+    <path d="M560 231 H596"/>
+    <path d="M830 231 H866"/>
+    <path d="M985 292 V440"/>
+    <path d="M870 505 H836"/>
+    <path d="M600 505 H566"/>
+    <path d="M330 505 H296"/>
+  </g>
+
+  <line x1="60" y1="342" x2="1136" y2="342" stroke="#C2362B" stroke-width="2" stroke-dasharray="10 8"/>
+  <rect x="330" y="326" width="540" height="34" fill="#15120F"/>
+  <text x="600" y="350" text-anchor="middle" fill="#C2362B" font-family="IBM Plex Mono, monospace" font-size="15">No plaintext fugitive state crosses this line — only the public report is decrypted</text>
+  <text x="64" y="620" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">Red = fugitive information · Brass = your information · Green = KMS verification · Chalk = public</text>
+  <text x="64" y="654" fill="#A99E8C" font-family="IBM Plex Mono, monospace" font-size="14">At case close a second KMS batch decrypts the whole path and every answer, and the contract replays the rules.</text>
+</svg>
