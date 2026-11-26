@@ -12,6 +12,7 @@ import { useCase } from "../game/useCase.ts";
 import { Briefing } from "../ui/Briefing.tsx";
 import { Button } from "../ui/Button.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
+import { Notice } from "../ui/Notice.tsx";
 import { Wordmark } from "../ui/Wordmark.tsx";
 
 const previewCells: DetectiveCells = [PRECINCT[0].cell, PRECINCT[1].cell, PRECINCT[2].cell];
@@ -21,36 +22,13 @@ interface BadgeState {
   badge: string | null;
   fuelSeconds: number | null;
   block: string | null;
-  error: string | null;
+  error: ErrorKey | null;
 }
 
 const emptyBadge: BadgeState = { badge: null, fuelSeconds: null, block: null, error: null };
 
 function shortAddress(address: Hex): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
-
-function failureCopy(error: ErrorKey | null): string {
-  switch (error) {
-    case "alreadyFunded":
-      return "Your badge already has fuel.";
-    case "tooSoon":
-      return "Fuel is issued once a day per badge.";
-    case "dailyCapReached":
-      return "The fuel depot is empty for today. Watch a solved case, or come back after 00:00 UTC.";
-    case "paused":
-      return "The fuel depot is paused. Try again later.";
-    case "outOfFuel":
-      return "Your detective is out of fuel.";
-    case "rpcUnreachable":
-      return "Lost the radio. Sepolia isn't answering.";
-    case "relayerSlow":
-      return "Dispatch is still decoding (Zama relayer). This usually takes under 20 seconds.";
-    case null:
-      return "";
-    default:
-      return "That request failed. Retry when you are ready.";
-  }
 }
 
 function useMobile(): boolean {
@@ -67,7 +45,7 @@ function useMobile(): boolean {
 
 export function Title() {
   const [, navigate] = useLocation();
-  const { state, openNewCase } = useCase();
+  const { state, openNewCase, retry } = useCase();
   const [badge, setBadge] = useState<BadgeState>(emptyBadge);
   const [running, setRunning] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -90,11 +68,24 @@ export function Title() {
     try {
       const account = getOrCreateBurner();
       setBadge((previous) => ({ ...previous, badge: shortAddress(account.address) }));
+      const forced = window.location.search.match(/[?&]state=([a-zA-Z]+)/)?.[1];
+      const forcedKeys: ErrorKey[] = [
+        "alreadyFunded",
+        "tooSoon",
+        "dailyCapReached",
+        "outOfFuel",
+        "rpcUnreachable",
+        "relayerSlow",
+      ];
+      if (forcedKeys.includes(forced as ErrorKey)) {
+        setBadge((previous) => ({ ...previous, error: forced as ErrorKey }));
+        return;
+      }
       fuelAt.current = Date.now();
       setNow(fuelAt.current);
       const drip = await requestDrip(account.address);
       if (drip.error !== undefined && drip.error !== "alreadyFunded") {
-        setBadge((previous) => ({ ...previous, error: failureCopy(drip.error ?? null) }));
+        setBadge((previous) => ({ ...previous, error: drip.error ?? null }));
         return;
       }
       setBadge((previous) => ({
@@ -105,7 +96,7 @@ export function Title() {
       if (id === null) {
         setBadge((previous) => ({
           ...previous,
-          error: "That request failed. Retry when you are ready.",
+          error: "unknown",
         }));
         return;
       }
@@ -121,7 +112,7 @@ export function Title() {
         navigate(`/case/${id}`);
       }
     } catch (error) {
-      setBadge((previous) => ({ ...previous, error: failureCopy(mapError(error)) }));
+      setBadge((previous) => ({ ...previous, error: mapError(error) }));
     } finally {
       setRunning(false);
     }
@@ -134,7 +125,7 @@ export function Title() {
       const hash = await getNoEscapeCase(account).write.abandonCase([state.caseId]);
       await publicClient.waitForTransactionReceipt({ hash });
     } catch (error) {
-      setBadge({ ...emptyBadge, error: failureCopy(mapError(error)) });
+      setBadge({ ...emptyBadge, error: mapError(error) });
       return;
     }
     await startCase();
@@ -178,6 +169,22 @@ export function Title() {
           ) : null}
           <Link href="/most-wanted">Most Wanted today →</Link>
         </p>
+        {typeof window !== "undefined" && window.location.search.includes("state=activeCase") ? (
+          <Notice
+            tone="warning"
+            kind="activeCase"
+            context={{ caseId: Number(window.location.search.match(/case=(\d+)/)?.[1] ?? 2) }}
+            action={<Link href="/case/2">Resume</Link>}
+          />
+        ) : null}
+        {state.caseId !== null ? (
+          <Notice
+            tone="warning"
+            kind="activeCase"
+            context={{ caseId: state.caseId }}
+            action={<Link href={`/case/${state.caseId}`}>Resume</Link>}
+          />
+        ) : null}
         {state.caseId !== null ? (
           <Link className="button button--primary" href={`/case/${state.caseId}`}>
             Resume case #{state.caseId.toString()}
@@ -245,21 +252,33 @@ export function Title() {
               {badge.block !== null ? `block #${badge.block}` : ""}
             </p>
             {badge.error !== null ? (
-              <>
-                <p role="alert" style={{ color: "var(--grease)" }}>
-                  {badge.error}
-                </p>
-                <Button type="button" onClick={() => void startCase()}>
-                  Retry
-                </Button>
-              </>
+              <Notice
+                tone="error"
+                kind={badge.error}
+                action={
+                  <>
+                    <Link href={state.caseId !== null ? `/case/${state.caseId}` : "/case/2/file"}>
+                      {state.caseId !== null ? "Continue" : "Watch a solved case"}
+                    </Link>{" "}
+                    <Button type="button" onClick={() => void startCase()}>
+                      Retry
+                    </Button>
+                  </>
+                }
+              />
             ) : null}
           </div>
         ) : null}
         {state.error !== null ? (
-          <p role="alert" style={{ color: "var(--grease)" }}>
-            {failureCopy(state.error.kind)}
-          </p>
+          <Notice
+            tone="error"
+            kind={state.error.kind}
+            action={
+              <Button type="button" onClick={() => void retry()}>
+                Try again
+              </Button>
+            }
+          />
         ) : null}
         {briefing !== null ? (
           <div style={{ marginTop: "var(--space-5)" }}>

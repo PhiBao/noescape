@@ -1,7 +1,9 @@
 import { DETECTIVES, type OrderCheck, validOrders, xy } from "@noescape/engine";
 import { Link } from "wouter";
+import { errorCopy } from "../chain/errors.ts";
 import type { CaseMachineState } from "../game/caseMachine.ts";
 import { Button } from "./Button.tsx";
+import { Notice } from "./Notice.tsx";
 
 interface OrdersPanelProps {
   state: CaseMachineState;
@@ -140,17 +142,20 @@ export function OrdersPanel({
       </div>
       <p style={{ margin: "var(--space-3) 0 var(--space-2)" }}>{phaseCopy[state.phase]}</p>
       {reason !== null ? (
-        <p role="alert" style={{ color: "var(--chalk-2)" }}>
-          {reason}
-        </p>
+        <Notice tone="warning">
+          {errorCopy("invalidOrders")} {reason}
+        </Notice>
       ) : null}
       {state.error !== null ? (
-        <>
-          <p role="alert">{state.error.kind}</p>
-          <Button type="button" onClick={() => void onRetry()}>
-            Try again
-          </Button>
-        </>
+        <Notice
+          tone="error"
+          kind={state.error.kind}
+          action={
+            <Button type="button" onClick={() => void onRetry()}>
+              Try again
+            </Button>
+          }
+        />
       ) : null}
       {state.phase === "planning" ? (
         <Button type="button" disabled={reason !== null} onClick={() => void onSend()}>

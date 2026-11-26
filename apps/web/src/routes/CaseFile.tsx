@@ -17,12 +17,13 @@ import { getOrCreateBurner } from "../chain/burner.ts";
 import { publicClient } from "../chain/clients.ts";
 import { getNoEscapeCaseReader } from "../chain/contracts.ts";
 import { requestDrip } from "../chain/drip.ts";
-import { mapError } from "../chain/errors.ts";
+import { type ErrorKey, mapError } from "../chain/errors.ts";
 import { config } from "../config.ts";
 import { useCase } from "../game/useCase.ts";
 import { BrainTable } from "../ui/BrainTable.tsx";
 import { Button } from "../ui/Button.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
+import { Notice } from "../ui/Notice.tsx";
 import { Sighting, Stamp } from "../ui/Stamp.tsx";
 import { hourOf } from "../ui/TurnClock.tsx";
 
@@ -111,7 +112,7 @@ export function CaseFile() {
   const [meta, setMeta] = useState<{ detective: string; status: number } | null>(null);
   const [dayInfo, setDayInfo] = useState<DayInfo | null>(null);
   const [dayTx, setDayTx] = useState<Hex | null>(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<ErrorKey | null>(null);
   const [selectedTurn, setSelectedTurn] = useState(1);
   const mobile = useMobile();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -286,7 +287,7 @@ export function CaseFile() {
     );
 
   async function verifyNow() {
-    setMessage("");
+    setMessage(null);
     const account = getOrCreateBurner();
     const drip = await requestDrip(account.address);
     if (drip.error !== undefined && drip.error !== "alreadyFunded") {
@@ -422,11 +423,7 @@ export function CaseFile() {
             </section>
           </>
         ) : null}
-        {message !== "" ? (
-          <p role="alert" style={{ color: "var(--grease)" }}>
-            {message}
-          </p>
-        ) : null}
+        {message !== null ? <Notice tone="error" kind={message} /> : null}
         <p>
           <Link href="/most-wanted">Back to Most Wanted</Link>
         </p>
@@ -475,14 +472,17 @@ export function CaseFile() {
         <p>{state.phase === "resolving" ? "Filing report…" : "Decrypting path with KMS…"}</p>
       ) : null}
       {state.error !== null ? (
-        <>
-          <p role="alert">{state.error.kind}</p>
-          <Button type="button" onClick={() => void retry()}>
-            Try again
-          </Button>
-        </>
+        <Notice
+          tone="error"
+          kind={state.error.kind}
+          action={
+            <Button type="button" onClick={() => void retry()}>
+              Try again
+            </Button>
+          }
+        />
       ) : null}
-      {message !== "" ? <p role="alert">{message}</p> : null}
+      {message !== null ? <Notice tone="error" kind={message} /> : null}
       {chainResult !== null && !chainResult.ok ? (
         <p role="alert" style={{ color: "var(--grease)", fontWeight: 600 }}>
           MISMATCH — fail code {chainResult.failCode} · turn {chainResult.failTurn}

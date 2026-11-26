@@ -2,9 +2,11 @@ import { xy } from "@noescape/engine";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { Hex } from "viem";
 import { Link } from "wouter";
+import type { ErrorKey } from "../chain/errors.ts";
 import { useDaily } from "../game/useDaily.ts";
 import { Button } from "../ui/Button.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
+import { Notice } from "../ui/Notice.tsx";
 import { Sighting, Stamp } from "../ui/Stamp.tsx";
 
 function txLink(label: string, hash: Hex | undefined): ReactNode {
@@ -60,6 +62,10 @@ export function MostWanted() {
     state.day === null ? "—" : new Date(state.day * 86_400_000).toISOString().slice(0, 10);
   const secondsLeft = 1_800 - (Math.floor(tick / 1000) % 1_800);
   const mine = daily.address !== null && state.winner === daily.address;
+  const huntedThisWatch = state.joined && state.lastWatch === state.watch;
+  const forcedError = window.location.search.match(/[?&]state=([a-zA-Z]+)/)?.[1] as ErrorKey | null;
+  const shownError = forcedError ?? daily.errorKey ?? state.error?.kind ?? null;
+  const forcedHunted = window.location.search.includes("once=1");
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -232,6 +238,11 @@ export function MostWanted() {
           >
             Your stamps are encrypted to you. Other hunters see only where you stand.
           </p>
+          {forcedHunted ? (
+            <Notice tone="warning">
+              You've hunted this watch. Next watch in {countdown(secondsLeft)}.
+            </Notice>
+          ) : null}
           {state.joined && state.status === 1 ? (
             <section
               className="paper"
@@ -263,6 +274,11 @@ export function MostWanted() {
                   style={{ width: "72px", padding: "var(--space-1)" }}
                 />
               </label>
+              {huntedThisWatch || forcedHunted ? (
+                <Notice tone="warning">
+                  You've hunted this watch. Next watch in {countdown(secondsLeft)}.
+                </Notice>
+              ) : null}
               <Button
                 type="button"
                 disabled={!daily.canHunt || !daily.validOrder(state.orders.to, state.orders.search)}
@@ -317,15 +333,33 @@ export function MostWanted() {
               ) : null}
             </section>
           ) : null}
-          {daily.message !== "" ? (
+          {shownError !== null ? (
+            <Notice
+              tone="error"
+              kind={shownError}
+              context={{ address: daily.address ?? undefined }}
+              action={
+                <Button type="button" onClick={daily.retry}>
+                  Retry this step
+                </Button>
+              }
+            />
+          ) : null}
+          {daily.errorKey === null && daily.message !== "" ? (
             <p role="alert" style={{ color: "var(--grease)" }}>
               {daily.message}
             </p>
           ) : null}
           {state.error !== null ? (
-            <Button type="button" onClick={daily.retry}>
-              Retry
-            </Button>
+            <Notice
+              tone="error"
+              kind={state.error.kind}
+              action={
+                <Button type="button" onClick={daily.retry}>
+                  Retry
+                </Button>
+              }
+            />
           ) : null}
         </aside>
       </div>

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import { exportBurner, getOrCreateBurner, importBurner } from "../chain/burner.ts";
 import { getNoEscapeCaseReader } from "../chain/contracts.ts";
+import { errorCopy, mapError } from "../chain/errors.ts";
 import { Button } from "../ui/Button.tsx";
+import { Notice } from "../ui/Notice.tsx";
 import { hourOf } from "../ui/TurnClock.tsx";
 
 interface CaseStats {
@@ -75,7 +77,7 @@ export function Record() {
         setRecent(rows);
         setError("");
       } catch (cause) {
-        if (!cancelled) setError(cause instanceof Error ? cause.message : "Record unavailable");
+        if (!cancelled) setError(errorCopy(mapError(cause)));
       }
     })();
     return () => {
@@ -165,11 +167,7 @@ export function Record() {
           </Button>
         </div>
       </section>
-      {error !== "" ? (
-        <p role="alert" style={{ color: "var(--grease)" }}>
-          {error}
-        </p>
-      ) : null}
+      {error !== "" ? <Notice tone="error">{error}</Notice> : null}
       <section aria-label="Recent cases" style={{ display: "grid", gap: "var(--space-2)" }}>
         <h2>Recent cases</h2>
         {recent.length === 0 ? (

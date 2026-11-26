@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { ErrorKey } from "../chain/errors.ts";
 
 export type DailyPhase =
   | "noKey"
@@ -44,7 +45,7 @@ export interface DailyState {
   verified: boolean;
   orders: DailyOrders;
   tx: DailyTx;
-  error: { kind: string; retryTo: DailyPhase } | null;
+  error: { kind: ErrorKey; retryTo: DailyPhase } | null;
 }
 
 export type DailyEvent =
@@ -79,7 +80,7 @@ export type DailyEvent =
   | { type: "CLAIM_DONE"; winner: Address; tx: Hex }
   | { type: "DAY_OVER"; status: number; winner: Address | null }
   | { type: "VERIFIED" }
-  | { type: "FAILED"; kind: string; retryTo: DailyPhase }
+  | { type: "FAILED"; kind: ErrorKey; retryTo: DailyPhase }
   | { type: "RETRY" };
 
 export function initialDailyState(): DailyState {

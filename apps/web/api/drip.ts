@@ -52,7 +52,12 @@ function mapDripError(error: unknown): DripErrorKey {
   collectError(error, names, messages);
   if (names.has("AlreadyFunded")) return "alreadyFunded";
   if (names.has("TooSoon")) return "tooSoon";
-  if (names.has("DailyCapReached")) return "dailyCapReached";
+  if (
+    names.has("DailyCapReached") ||
+    [...messages].some((message) => message.toLowerCase().includes("dailycapreached"))
+  ) {
+    return "dailyCapReached";
+  }
   if (names.has("EnforcedPause") || names.has("Paused")) return "paused";
   if ([...messages].some((message) => message.toLowerCase().includes("insufficient funds"))) {
     return "unknown";

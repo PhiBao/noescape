@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useState } from "react";
 import { type Account, type Address, getContract, parseAbi } from "viem";
 import { getOrCreateBurner } from "../chain/burner.ts";
 import { publicClient, walletClientFor, withRetry } from "../chain/clients.ts";
-import { mapError } from "../chain/errors.ts";
+import { type ErrorKey, errorCopy, mapError } from "../chain/errors.ts";
 import { ensurePermits, publicDecrypt, userDecrypt } from "../chain/zama.ts";
 import {
   type DailyEvent,
@@ -85,6 +85,7 @@ function getContracts(account: Account) {
 export function useDaily() {
   const [state, dispatch] = useReducer(dailyReducer, undefined, initialDailyState);
   const [message, setMessage] = useState("");
+  const [errorKey, setErrorKey] = useState<ErrorKey | null>(null);
   const [address, setAddress] = useState<Address | null>(null);
   const [hunters, setHunters] = useState<HunterPin[]>([]);
   const [hunterCount, setHunterCount] = useState(0);
@@ -94,6 +95,12 @@ export function useDaily() {
 
   const fail = useCallback((error: unknown, retryTo: DailyPhase) => {
     dispatch({ type: "FAILED", kind: mapError(error), retryTo });
+  }, []);
+
+  const setFailure = useCallback((error: unknown) => {
+    const key = mapError(error);
+    setErrorKey(key);
+    setMessage(errorCopy(key));
   }, []);
 
   const hydrate = useCallback(async () => {
@@ -166,10 +173,10 @@ export function useDaily() {
 
   useEffect(() => {
     void hydrate().catch((error: unknown) => {
-      setMessage(mapError(error));
+      setFailure(error);
       dispatch({ type: "KEY_READY" });
     });
-  }, [hydrate]);
+  }, [hydrate, setFailure]);
 
   async function send(event: DailyEvent) {
     dispatch(event);
@@ -194,6 +201,7 @@ export function useDaily() {
       await publicClient.waitForTransactionReceipt({ hash: wrap });
       await send({ type: "WRAP_DONE", tx: wrap });
       setMessage("");
+      setErrorKey(null);
     } catch (error) {
       fail(error, "idle");
     }
@@ -211,6 +219,7 @@ export function useDaily() {
       await publicClient.waitForTransactionReceipt({ hash: operator });
       await send({ type: "OPERATOR_DONE", tx: operator });
       setMessage("");
+      setErrorKey(null);
     } catch (error) {
       fail(error, "idle");
     }
@@ -230,6 +239,7 @@ export function useDaily() {
       ]);
       dispatch({ type: "JOIN_DONE", day: currentDay(), cell: Number(hunter.cell), tx: hash });
       setMessage("");
+      setErrorKey(null);
     } catch (error) {
       fail(error, "idle");
     }
@@ -267,6 +277,7 @@ export function useDaily() {
       }
       await hydrate();
       setMessage("");
+      setErrorKey(null);
     } catch (error) {
       fail(error, "planning");
     }
@@ -283,7 +294,7 @@ export function useDaily() {
       ]);
       setPayout(`${Number(clear[handle] ?? 0n) / 10 ** 6} cUSDT`);
     } catch (error) {
-      setMessage(mapError(error));
+      setFailure(error);
     }
   }
 
@@ -305,13 +316,13 @@ export function useDaily() {
       if (opened.verified && opened.verifyOk) dispatch({ type: "VERIFIED" });
       else setMessage("Daily verification did not pass");
     } catch (error) {
-      setMessage(mapError(error));
+      setFailure(error);
     }
   }
 
   function retry() {
     dispatch({ type: "RETRY" });
-    void hydrate().catch((error: unknown) => setMessage(mapError(error)));
+    void hydrate().catch((error: unknown) => setFailure(error));
   }
 
   return {
@@ -323,6 +334,7 @@ export function useDaily() {
     myCode,
     payout,
     message,
+    errorKey,
     setupTokens,
     authorise,
     join,

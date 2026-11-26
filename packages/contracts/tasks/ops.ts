@@ -31,6 +31,26 @@ task("ops:set-operator", "Sets the GasTap drip operator")
     );
   });
 
+task("ops:set-cap", "Sets the GasTap daily cap in ETH for a forced failure state")
+  .addParam("eth", "New cap in ETH")
+  .setAction(async (taskArguments, hre) => {
+    await requireSepolia(hre);
+    const [owner] = await hre.ethers.getSigners();
+    if (owner === undefined) throw new Error("missing owner signer");
+    const deployment = await hre.deployments.get("GasTap");
+    const tap = await hre.ethers.getContractAt("GasTap", deployment.address, owner);
+    const transaction = await tap.setDailyCap(hre.ethers.parseEther(String(taskArguments.eth)));
+    const receipt = await transaction.wait();
+    if (receipt === null) throw new Error("setDailyCap was not mined");
+    console.log(
+      JSON.stringify({
+        capEth: taskArguments.eth,
+        txHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+      }),
+    );
+  });
+
 task("ops:tap-status", "Prints GasTap balances and drip configuration").setAction(
   async (_taskArguments, hre) => {
     await requireSepolia(hre);

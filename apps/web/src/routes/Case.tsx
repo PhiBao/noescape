@@ -2,15 +2,18 @@ import { CAMERAS, DETECTIVES, type DetectiveCells, H, TURNS, W } from "@noescape
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import type { Hex } from "viem";
 import { useParams } from "wouter";
+import { getOrCreateBurner } from "../chain/burner.ts";
 import { publicClient } from "../chain/clients.ts";
 import { getNoEscapeCaseReader } from "../chain/contracts.ts";
-import { mapError } from "../chain/errors.ts";
+import { type ErrorKey, mapError } from "../chain/errors.ts";
 import { ensurePermits, publicDecrypt, userDecrypt } from "../chain/zama.ts";
 import { type DecodedTurn, useCase } from "../game/useCase.ts";
+import { Button } from "../ui/Button.tsx";
 import { Coach } from "../ui/Coach.tsx";
 import { type DispatchInfo, DispatchStrip } from "../ui/DispatchStrip.tsx";
 import { EndCard } from "../ui/EndCard.tsx";
 import { MapBoard } from "../ui/MapBoard.tsx";
+import { Notice } from "../ui/Notice.tsx";
 import { OrdersPanel } from "../ui/OrdersPanel.tsx";
 import { RadioLog } from "../ui/RadioLog.tsx";
 import { Sighting, Stamp } from "../ui/Stamp.tsx";
@@ -53,7 +56,7 @@ export function Case() {
 
   const [history, setHistory] = useState<DecodedTurn[]>([]);
   const [cellsByTurn, setCellsByTurn] = useState<Record<number, DetectiveCells>>({});
-  const [historyError, setHistoryError] = useState("");
+  const [historyError, setHistoryError] = useState<ErrorKey | null>(null);
   const historyKey = useRef("");
 
   useEffect(() => {
@@ -136,6 +139,7 @@ export function Case() {
 
   const [dispatch, setDispatch] = useState<DispatchInfo | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [decodeStart, setDecodeStart] = useState<number | null>(null);
   const dispatchTurn = useRef<number | null>(null);
   const trackedTurn = dispatch?.turn ?? null;
 
@@ -215,6 +219,34 @@ export function Case() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase === "decoding") setDecodeStart((start) => start ?? Date.now());
+    else if (state.phase !== "sending" && state.phase !== "mining") setDecodeStart(null);
+  }, [state.phase]);
+
+  useEffect(() => {
+    if (state.error?.kind !== "rpcUnreachable") return;
+    const timer = window.setInterval(() => retry(), 5_000);
+    return () => window.clearInterval(timer);
+  }, [retry, state.error?.kind]);
+
+  const forcedInvalid = useRef(false);
+  useEffect(() => {
+    if (
+      forcedInvalid.current ||
+      state.phase !== "planning" ||
+      !window.location.search.includes("invalidOrders=1")
+    ) {
+      return;
+    }
+    forcedInvalid.current = true;
+    const target = state.cells.includes(0) ? 119 : 0;
+    setOrders({
+      ...state.orders,
+      to: [target, state.orders.to[1] ?? 30, state.orders.to[2] ?? 41],
+    });
+  }, [setOrders, state.cells, state.orders, state.phase]);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const [overlayRect, setOverlayRect] = useState<OverlayRect>({
@@ -309,6 +341,8 @@ export function Case() {
     margin: "0 auto",
     padding: layout === "mobile" ? "var(--space-3)" : "var(--space-6)",
   };
+  const forcedError = window.location.search.match(/[?&]state=([a-zA-Z]+)/)?.[1] as ErrorKey | null;
+  const shownError = forcedError ?? state.error?.kind ?? null;
   const columnsStyle = {
     display: "flex",
     flexDirection: desktop ? "row" : "column",
@@ -411,10 +445,43 @@ export function Case() {
               cellsByTurn={overlayCells}
               collapsible={layout === "mobile"}
             />
-            {historyError !== "" ? (
-              <p role="alert" style={{ color: "var(--chalk-2)" }}>
-                {historyError}
-              </p>
+            {shownError !== null ? (
+              <Notice
+                tone="error"
+                kind={shownError}
+                context={{
+                  address: getOrCreateBurner().address,
+                  elapsedMs: decodeStart === null ? 0 : now - decodeStart,
+                }}
+                action={
+                  <>
+                    {shownError === "outOfFuel" ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void navigator.clipboard.writeText(getOrCreateBurner().address)
+                        }
+                      >
+                        Copy address
+                      </button>
+                    ) : null}{" "}
+                    <Button type="button" onClick={() => void retry()}>
+                      Try again
+                    </Button>
+                  </>
+                }
+              />
+            ) : null}
+            {historyError !== null ? (
+              <Notice
+                tone="warning"
+                kind={historyError}
+                action={
+                  <Button type="button" onClick={() => void retry()}>
+                    Try again
+                  </Button>
+                }
+              />
             ) : null}
           </aside>
         </div>
