@@ -4,9 +4,11 @@ import { getNoEscapeCaseReader } from "../chain/contracts.ts";
 import { userDecrypt } from "../chain/zama.ts";
 import { Button } from "../ui/Button.tsx";
 
-const CONTRACT =
-  "https://github.com/PhiBao/noescape/blob/main/packages/contracts/contracts/NoEscapeCase.sol";
-const WEB = "https://github.com/PhiBao/noescape/blob/main/apps/web/src";
+const PERMALINK =
+  "https://github.com/PhiBao/noescape/blob/eda869add212fe87fa70ba129ee148ee3c70b18e";
+const CONTRACT = `${PERMALINK}/packages/contracts/contracts/NoEscapeCase.sol#L140-L167`;
+const WEB_ZAMA = `${PERMALINK}/apps/web/src/chain/zama.ts#L56-L96`;
+const VERIFY = `${PERMALINK}/packages/engine/src/verify.ts#L28`;
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -205,9 +207,8 @@ export function Secret() {
             color: "var(--chalk-2)",
           }}
         >
-          Code: <a href={CONTRACT}>NoEscapeCase.sol</a> ·{" "}
-          <a href={`${WEB}/chain/zama.ts`}>zama.ts</a> ·{" "}
-          <a href={`${WEB}/game/verify.ts`}>verify.ts</a>
+          Code: <a href={CONTRACT}>NoEscapeCase.sol</a> · <a href={WEB_ZAMA}>zama.ts</a> ·{" "}
+          <a href={VERIFY}>verify.ts</a>
         </p>
       </section>
     </main>
