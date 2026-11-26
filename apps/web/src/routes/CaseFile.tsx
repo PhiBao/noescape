@@ -1,4 +1,4 @@
-import { sepoliaAddresses } from "@noescape/contracts/abi";
+import { MostWantedAbi, sepoliaAddresses } from "@noescape/contracts/abi";
 import {
   CAMERAS,
   type CaseRecord,
@@ -32,9 +32,22 @@ const caseOpenedEvent = parseAbiItem(
 const caseVerifiedEvent = parseAbiItem(
   "event CaseVerified(uint256 indexed id, bool indexed ok, uint8 failCode, uint8 failTurn)",
 );
+const dayVerifiedEvent = parseAbiItem(
+  "event DayVerified(uint32 indexed day, bool indexed ok, uint8 failCode)",
+);
 
 type ChainResult = { ok: boolean; failCode: number; failTurn: number };
 type TxLinks = { opened: Hex | null; verified: Hex | null };
+type DayInfo = {
+  day: number;
+  status: number;
+  hunters: number;
+  steps: number;
+  verified: boolean;
+  verifyOk: boolean;
+  failCode: number;
+  winner: string;
+};
 
 function bytesToValues(bytes: Hex): number[] {
   return Array.from(bytes.slice(2).match(/.{2}/g) ?? [], (byte) => Number(`0x${byte}`));
@@ -86,12 +99,18 @@ export function CaseFile() {
   const { id } = useParams();
   const caseId = id === undefined ? null : BigInt(id);
   const valid = caseId !== null && caseId > 0n;
-  const { state, resolveAndReveal, retry } = useCase(valid ? caseId : undefined);
+  const isDay =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("day");
+  const { state, resolveAndReveal, retry } = useCase(
+    isDay ? undefined : valid ? caseId : undefined,
+  );
   const [record, setRecord] = useState<CaseRecord | null>(null);
   const [chainResult, setChainResult] = useState<ChainResult | null>(null);
   const [localResult, setLocalResult] = useState<ReturnType<typeof verifyCase> | null>(null);
   const [txLinks, setTxLinks] = useState<TxLinks>({ opened: null, verified: null });
   const [meta, setMeta] = useState<{ detective: string; status: number } | null>(null);
+  const [dayInfo, setDayInfo] = useState<DayInfo | null>(null);
+  const [dayTx, setDayTx] = useState<Hex | null>(null);
   const [message, setMessage] = useState("");
   const [selectedTurn, setSelectedTurn] = useState(1);
   const mobile = useMobile();
@@ -157,6 +176,48 @@ export function CaseFile() {
       cancelled = true;
     };
   }, [caseId, state.verified, valid]);
+
+  useEffect(() => {
+    if (!isDay || caseId === null) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const day = Number(caseId);
+        const opened = await publicClient.readContract({
+          address: sepoliaAddresses.MostWanted.address,
+          abi: MostWantedAbi,
+          functionName: "getDay",
+          args: [day],
+        });
+        if (cancelled) return;
+        setDayInfo({
+          day,
+          status: Number(opened.status),
+          hunters: Number(opened.hunters),
+          steps: Number(opened.steps),
+          verified: opened.verified,
+          verifyOk: opened.verifyOk,
+          failCode: Number(opened.failCode),
+          winner: opened.winner,
+        });
+        const latest = await publicClient.getBlockNumber();
+        const deployBlock = BigInt(sepoliaAddresses.MostWanted.deployBlock ?? 0);
+        const logs = await publicClient.getLogs({
+          address: sepoliaAddresses.MostWanted.address,
+          event: dayVerifiedEvent,
+          args: { day },
+          fromBlock: deployBlock,
+          toBlock: latest,
+        });
+        if (!cancelled) setDayTx(logs[0]?.transactionHash ?? null);
+      } catch (error) {
+        if (!cancelled) setMessage(mapError(error));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [caseId, isDay]);
 
   useEffect(() => {
     if (record !== null)
@@ -300,6 +361,78 @@ export function CaseFile() {
     alignItems: "flex-start",
     gap: mobile ? "var(--space-4)" : "var(--space-6)",
   };
+
+  if (isDay) {
+    return (
+      <main
+        style={{
+          width: "min(100%, 900px)",
+          maxWidth: "none",
+          margin: "0 auto",
+          padding: "var(--space-6)",
+          display: "grid",
+          gap: "var(--space-5)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono)",
+            color: "var(--chalk-2)",
+          }}
+        >
+          {dayInfo === null ? "Reading the daily ledger…" : `Most Wanted · day ${dayInfo.day}`}
+        </p>
+        {dayInfo !== null ? (
+          <>
+            <h1>{dayInfo.status === 2 ? "Caught" : "Got away"}</h1>
+            {dayInfo.status === 2 &&
+            dayInfo.winner !== "0x0000000000000000000000000000000000000000" ? (
+              <p style={{ fontFamily: "var(--font-mono)" }}>
+                Caught by {dayInfo.winner.slice(0, 6)}…{dayInfo.winner.slice(-4)}
+              </p>
+            ) : null}
+            <section
+              className="paper"
+              aria-label="Daily verification"
+              style={{ padding: "var(--space-5)", display: "grid", gap: "var(--space-2)" }}
+            >
+              {dayInfo.verified && dayInfo.verifyOk ? (
+                <p
+                  style={{
+                    color: "var(--verified)",
+                    fontFamily: "var(--font-display)",
+                    fontSize: "56px",
+                    fontWeight: 800,
+                    lineHeight: 1,
+                  }}
+                >
+                  VERIFIED
+                </p>
+              ) : (
+                <p>Daily verification pending</p>
+              )}
+              <p>
+                ✓ {dayInfo.hunters} hunters · {dayInfo.steps} watched steps
+              </p>
+              <p>✓ KMS signatures checked onchain · fail code {dayInfo.failCode}</p>
+              {dayTx !== null ? (
+                <a href={`https://sepolia.etherscan.io/tx/${dayTx}`}>DayVerified transaction</a>
+              ) : null}
+            </section>
+          </>
+        ) : null}
+        {message !== "" ? (
+          <p role="alert" style={{ color: "var(--grease)" }}>
+            {message}
+          </p>
+        ) : null}
+        <p>
+          <Link href="/most-wanted">Back to Most Wanted</Link>
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main
