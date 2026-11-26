@@ -2,6 +2,23 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @noescape/web build",
   "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com; worker-src 'self' blob:; connect-src 'self' data: https://ethereum-sepolia.core.chainstack.com https://ethereum-sepolia-rpc.publicnode.com https://relayer.testnet.zama.org https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=()"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!api/).*)",
