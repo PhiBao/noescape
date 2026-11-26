@@ -9,7 +9,9 @@
       "!packages/contracts/coverage",
       "!packages/contracts/fhevmTemp",
       "!packages/contracts/deployments",
-      "!**/dist"
+      "!**/dist",
+      "!**/test-results",
+      "!**/playwright-report"
     ]
   },
   "formatter": {
