@@ -283,6 +283,7 @@ describe("mw.reveal", () => {
     const current = engineRecord.path[0];
     const originalNext = engineRecord.path[1];
     if (current === undefined || originalNext === undefined) throw new Error("missing path");
+    const used = new Set(engineRecord.path);
     const adjacent = neighbors(bit(current)) & WALK;
     const searchedShapes = PRECINCT.reduce((mask, entry) => mask | plus(entry.cell), 0n);
     const replacement = Array.from({ length: 120 }, (_, cell) => cell).find(
@@ -290,6 +291,7 @@ describe("mw.reveal", () => {
         (WALK & bit(cell)) !== 0n &&
         (adjacent & bit(cell)) === 0n &&
         (searchedShapes & bit(cell)) === 0n &&
+        !used.has(cell) &&
         cell !== originalNext,
     );
     if (replacement === undefined) throw new Error("no alternate path cell");
