@@ -721,6 +721,17 @@ export function CaseFile() {
                   VERIFIED
                 </p>
               ) : null}
+              <p
+                style={{
+                  marginTop: "var(--space-3)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono)",
+                  color: "var(--ink-2)",
+                }}
+              >
+                The fugitive stayed a ciphertext handle until these signatures released it. On a
+                transparent chain this path would have been readable from the first move.
+              </p>
               <ul
                 style={{
                   listStyle: "none",

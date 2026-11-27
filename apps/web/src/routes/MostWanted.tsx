@@ -105,6 +105,17 @@ export function MostWanted() {
         <span>Hunters {daily.hunterCount}</span>
         <span>Bounty: confidential cUSDT, 5 per entry</span>
       </section>
+      <p
+        style={{
+          margin: 0,
+          maxWidth: "70ch",
+          color: "var(--chalk-2)",
+          fontSize: "var(--text-small)",
+        }}
+      >
+        One shared fugitive for everyone today. Your stamps are encrypted to you; other hunters only
+        see where you stand. The bounty is paid in confidential cUSDT.
+      </p>
 
       {!state.joined ? (
         <section

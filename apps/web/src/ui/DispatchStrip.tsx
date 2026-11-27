@@ -47,6 +47,12 @@ export function DispatchStrip({ phase, info, now }: DispatchStripProps) {
     },
   ];
   const totalSeconds = seconds(info.signedAt, info.decodedAt ?? now);
+  const narrative =
+    phase === "decoding"
+      ? "The city is moving. The report is being decrypted."
+      : phase === "mining"
+        ? "Your orders are on the way. Waiting for the block."
+        : "Signing your orders.";
 
   return (
     <section aria-label="Dispatch progress" aria-live="polite">
@@ -62,6 +68,15 @@ export function DispatchStrip({ phase, info, now }: DispatchStripProps) {
         <span>Dispatch · turn {info.turn}</span>
         <span>{totalSeconds}</span>
       </div>
+      <p
+        style={{
+          margin: "var(--space-2) 0 0",
+          color: "var(--chalk)",
+          fontSize: "var(--text-small)",
+        }}
+      >
+        {narrative}
+      </p>
       <ol
         style={{
           listStyle: "none",

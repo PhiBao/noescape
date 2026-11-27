@@ -134,6 +134,7 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
       style={{
         position: "absolute",
         zIndex: 6,
+        pointerEvents: "none",
         width: "min(280px, 74vw)",
         padding: "var(--space-4)",
         ...anchorStyle(active.anchor, layout),
@@ -152,9 +153,11 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
         {active.title}
       </p>
       <p style={{ margin: "0 0 var(--space-3)" }}>{active.text}</p>
-      <Button type="button" onClick={gotIt}>
-        Got it
-      </Button>
+      <span style={{ pointerEvents: "auto" }}>
+        <Button type="button" onClick={gotIt}>
+          Got it
+        </Button>
+      </span>
     </section>
   );
 }

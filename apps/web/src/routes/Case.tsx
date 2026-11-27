@@ -372,7 +372,18 @@ export function Case() {
 
   return (
     <main style={outerStyle}>
-      <h1 style={{ marginBottom: "var(--space-5)" }}>Case #{caseId.toString()}</h1>
+      <h1 style={{ marginBottom: "var(--space-2)" }}>Case #{caseId.toString()}</h1>
+      <p
+        style={{
+          marginBottom: "var(--space-5)",
+          maxWidth: "72ch",
+          color: "var(--chalk-2)",
+          fontSize: "var(--text-small)",
+        }}
+      >
+        Goal: catch the fugitive before dawn. 12 night hours, three detectives, one secret. The
+        fugitive moves after every order.
+      </p>
       <div style={{ position: "relative" }}>
         <div style={columnsStyle}>
           <div style={mapStyle}>
