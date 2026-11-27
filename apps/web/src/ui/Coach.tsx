@@ -27,7 +27,7 @@ const marks: Mark[] = [
     id: "1-ada",
     turn: 1,
     title: "Move a detective",
-    text: "Drag a detective up to two corners. Or three, if it skips searching.",
+    text: "Goal: catch the fugitive before dawn. Drag a detective up to two corners. Or three, if it skips searching.",
     anchor: "ada",
   },
   {
@@ -119,6 +119,7 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
   const active = marks.find((mark) => mark.turn <= displayTurn && !dismissed.includes(mark.id));
   if (active === undefined) return null;
   if (firstCase !== true && dismissed.length === 0) return null;
+  const activeIndex = marks.indexOf(active) + 1;
 
   const gotIt = () => {
     const next = [...dismissed, active.id];
@@ -150,7 +151,7 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
           letterSpacing: "0.06em",
         }}
       >
-        {active.title}
+        {active.title} · {activeIndex}/{marks.length}
       </p>
       <p style={{ margin: "0 0 var(--space-3)" }}>{active.text}</p>
       <span style={{ pointerEvents: "auto" }}>

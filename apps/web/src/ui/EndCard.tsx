@@ -176,6 +176,10 @@ export function EndCard({ caseId, state, entries, onOpenCaseFile }: EndCardProps
           {state.turn} hours · {counts.searches} searches · {counts.fresh} FRESH ·{" "}
           {counts.sightings} {counts.sightings === 1 ? "sighting" : "sightings"}
         </p>
+        <p style={{ marginBottom: "var(--space-4)", color: "var(--ink-2)" }}>
+          The fugitive's path is now decryptable. Open the case file to replay the whole night and
+          check every move onchain.
+        </p>
         {requested ? (
           <ol
             aria-label="Case file progress"
@@ -211,6 +215,9 @@ export function EndCard({ caseId, state, entries, onOpenCaseFile }: EndCardProps
           </Button>
           <Button type="button" variant="secondary" onClick={() => void copyResult()}>
             {copied ? "Copied" : "Copy result"}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => navigate("/")}>
+            Take another case
           </Button>
         </div>
         <p
