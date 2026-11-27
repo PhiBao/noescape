@@ -87,35 +87,37 @@ export function MostWanted() {
         gap: "var(--space-5)",
       }}
     >
-      <h1 className="sr-only">Most Wanted</h1>
-      <section
-        aria-label="Most Wanted header"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "var(--space-5)",
-          padding: "var(--space-4)",
-          border: "1px solid var(--desk-line)",
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-small)",
-        }}
-      >
-        <span>MOST WANTED · {dayLabel}</span>
-        <span>Next watch in {countdown(secondsLeft)}</span>
-        <span>Hunters {daily.hunterCount}</span>
-        <span>Bounty: confidential cUSDT, 5 per entry</span>
-      </section>
-      <p
-        style={{
-          margin: 0,
-          maxWidth: "70ch",
-          color: "var(--chalk-2)",
-          fontSize: "var(--text-small)",
-        }}
-      >
-        One shared fugitive for everyone today. Your stamps are encrypted to you; other hunters only
-        see where you stand. The bounty is paid in confidential cUSDT.
-      </p>
+      <header style={{ display: "grid", gap: "var(--space-3)" }}>
+        <h1 style={{ margin: 0 }}>Most Wanted</h1>
+        <p
+          style={{
+            margin: 0,
+            maxWidth: "70ch",
+            color: "var(--chalk-2)",
+            fontSize: "var(--text-small)",
+          }}
+        >
+          One shared fugitive for everyone today. Your stamps are encrypted to you; other hunters
+          only see where you stand. The bounty is paid in confidential cUSDT.
+        </p>
+        <section
+          aria-label="Most Wanted header"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--space-5)",
+            padding: "var(--space-4)",
+            border: "1px solid var(--desk-line)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-small)",
+          }}
+        >
+          <span>{dayLabel}</span>
+          <span>Next watch in {countdown(secondsLeft)}</span>
+          <span>Hunters {daily.hunterCount}</span>
+          <span>Bounty: confidential cUSDT, 5 per entry</span>
+        </section>
+      </header>
 
       {!state.joined ? (
         <section
@@ -124,6 +126,20 @@ export function MostWanted() {
           style={{ padding: "var(--space-5)", display: "grid", gap: "var(--space-3)" }}
         >
           <h2 style={{ marginTop: 0 }}>Join today's hunt</h2>
+          <ol
+            style={{
+              margin: 0,
+              paddingLeft: "var(--space-5)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono)",
+              lineHeight: "var(--leading-mono)",
+              color: "var(--chalk-2)",
+            }}
+          >
+            <li>Get 100 test cUSDT and authorise the bounty desk.</li>
+            <li>Join today's shared case for 5 cUSDT.</li>
+            <li>Hunt once per 30-minute watch. Your stamps stay private.</li>
+          </ol>
           <div>
             <Button
               type="button"
