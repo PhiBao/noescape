@@ -74,6 +74,11 @@ function getContracts(account: Account) {
       abi: wrapperAbi,
       client: walletClientFor(account),
     }),
+    wrapperReader: getContract({
+      address: WRAPPER_ADDRESS,
+      abi: wrapperAbi,
+      client: publicClient,
+    }),
     underlying: getContract({
       address: UNDERLYING_ADDRESS,
       abi: underlyingAbi,
@@ -92,6 +97,7 @@ export function useDaily() {
   const [sightings, setSightings] = useState<Sighting[]>([]);
   const [myCode, setMyCode] = useState<number | null>(null);
   const [payout, setPayout] = useState<string | null>(null);
+  const [operatorReady, setOperatorReady] = useState(false);
 
   const fail = useCallback((error: unknown, retryTo: DailyPhase) => {
     dispatch({ type: "FAILED", kind: mapError(error), retryTo });
@@ -106,7 +112,14 @@ export function useDaily() {
   const hydrate = useCallback(async () => {
     const account = getOrCreateBurner();
     setAddress(account.address);
-    const { reader } = getContracts(account);
+    const { reader, wrapperReader } = getContracts(account);
+    try {
+      setOperatorReady(
+        await wrapperReader.read.isOperator([account.address, sepoliaAddresses.MostWanted.address]),
+      );
+    } catch {
+      setOperatorReady(false);
+    }
     const day = currentDay();
     const opened = await reader.read.getDay([day]);
     setHunterCount(Number(opened.hunters));
@@ -218,6 +231,7 @@ export function useDaily() {
       );
       await publicClient.waitForTransactionReceipt({ hash: operator });
       await send({ type: "OPERATOR_DONE", tx: operator });
+      setOperatorReady(true);
       setMessage("");
       setErrorKey(null);
     } catch (error) {
@@ -226,6 +240,11 @@ export function useDaily() {
   }
 
   async function join() {
+    if (!operatorReady) {
+      setMessage("Authorise the bounty desk before joining.");
+      setErrorKey(null);
+      return;
+    }
     const account = getOrCreateBurner();
     const { writer } = getContracts(account);
     try {
@@ -321,8 +340,15 @@ export function useDaily() {
   }
 
   function retry() {
+    setMessage("");
+    setErrorKey(null);
     dispatch({ type: "RETRY" });
-    void hydrate().catch((error: unknown) => setFailure(error));
+    void hydrate()
+      .then(() => {
+        setMessage("");
+        setErrorKey(null);
+      })
+      .catch((error: unknown) => setFailure(error));
   }
 
   return {
@@ -335,6 +361,7 @@ export function useDaily() {
     payout,
     message,
     errorKey,
+    operatorReady,
     setupTokens,
     authorise,
     join,

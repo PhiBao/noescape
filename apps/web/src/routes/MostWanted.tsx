@@ -1,4 +1,4 @@
-import { xy } from "@noescape/engine";
+import { W, xy } from "@noescape/engine";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { Hex } from "viem";
 import { Link } from "wouter";
@@ -21,6 +21,10 @@ function txLink(label: string, hash: Hex | undefined): ReactNode {
 function countdown(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function cellLabel(cell: number): string {
+  return `${String.fromCharCode(65 + (cell % W))}${Math.floor(cell / W) + 1}`;
 }
 
 export function MostWanted() {
@@ -100,6 +104,20 @@ export function MostWanted() {
           One shared fugitive for everyone today. Your stamps are encrypted to you; other hunters
           only see where you stand. The bounty is paid in confidential cUSDT.
         </p>
+        <p
+          style={{
+            margin: 0,
+            maxWidth: "70ch",
+            color: "var(--chalk-2)",
+            fontSize: "var(--text-small)",
+          }}
+        >
+          A solo case is your private 12-hour hunt. Most Wanted is the shared daily hunt: one
+          fugitive for everyone, one action per 30-minute watch, and a confidential bounty.
+        </p>
+        <p style={{ margin: 0 }}>
+          <Link href="/">← Back to the desk</Link>
+        </p>
         <section
           aria-label="Most Wanted header"
           style={{
@@ -151,7 +169,7 @@ export function MostWanted() {
               }
               onClick={() => void run(daily.setupTokens)}
             >
-              Get 100 test cUSDT
+              1 · Get 100 test cUSDT
             </Button>{" "}
             {txLink("mint", state.tx.mint)} {txLink("approve", state.tx.approve)}{" "}
             {txLink("wrap", state.tx.wrap)}
@@ -167,19 +185,31 @@ export function MostWanted() {
               }
               onClick={() => void run(daily.authorise)}
             >
-              Authorise the bounty desk
+              2 · Authorise the bounty desk
             </Button>{" "}
             {txLink("operator", state.tx.operator)}
           </div>
           <div>
             <Button
               type="button"
-              disabled={busy || state.phase === "operator"}
+              disabled={busy || state.phase === "operator" || !daily.operatorReady}
               onClick={() => void run(daily.join)}
             >
-              Join (5 cUSDT)
+              3 · Join (5 cUSDT)
             </Button>{" "}
             {txLink("join", state.tx.join)}
+            {!daily.operatorReady ? (
+              <p
+                style={{
+                  margin: "var(--space-2) 0 0",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono)",
+                  color: "var(--chalk-2)",
+                }}
+              >
+                Authorise the bounty desk first.
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -193,18 +223,31 @@ export function MostWanted() {
         }}
       >
         <div className="most-wanted-map" ref={mapRef} style={{ position: "relative", minWidth: 0 }}>
-          <style>{`.most-wanted-map .map-pins,.most-wanted-map .map-cells{display:none}`}</style>
+          <style>{`.most-wanted-map .map-pins{display:none}${
+            state.joined
+              ? ""
+              : ".most-wanted-map .map-cells,.most-wanted-map .map-reach,.most-wanted-map .map-plus-preview{display:none}"
+          }`}</style>
           <MapBoard
-            cells={[state.cell, state.cell, state.cell]}
+            cells={[state.cell, -1, -1]}
             orders={{
-              to: [state.cell, state.cell, state.cell],
+              to: [state.orders.to, -1, -1],
               searchFlags: state.orders.search ? 1 : 0,
             }}
             selectedDetective={0}
             search={state.orders.search}
             onSelectDetective={() => undefined}
-            onOrdersChange={() => undefined}
-            onSearchToggle={() => undefined}
+            onOrdersChange={(next) => {
+              const destination = next.to[0];
+              if (destination !== undefined && state.phase === "planning") {
+                void daily.setOrders({ ...state.orders, to: destination });
+              }
+            }}
+            onSearchToggle={() => {
+              if (state.phase === "planning") {
+                void daily.setOrders({ ...state.orders, search: !state.orders.search });
+              }
+            }}
           />
           {rect.width > 0 ? (
             <svg
@@ -277,6 +320,19 @@ export function MostWanted() {
               aria-label="Hunt orders"
               style={{ padding: "var(--space-4)", display: "grid", gap: "var(--space-3)" }}
             >
+              <p
+                style={{
+                  margin: 0,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono)",
+                  color: "var(--chalk-2)",
+                }}
+              >
+                Pick a brass cell on the map. Search checks it and the four around it.
+              </p>
+              <p style={{ margin: 0, color: "var(--chalk)" }}>
+                Selected: {cellLabel(state.orders.to)} · {state.orders.search ? "Search" : "Sprint"}
+              </p>
               <label>
                 <input
                   type="checkbox"
@@ -288,20 +344,32 @@ export function MostWanted() {
                 />{" "}
                 Search
               </label>
-              <label style={{ fontFamily: "var(--font-mono)" }}>
-                Destination{" "}
-                <input
-                  type="number"
-                  min={0}
-                  max={119}
-                  value={state.orders.to}
-                  disabled={state.phase !== "planning"}
-                  onChange={(event) =>
-                    void daily.setOrders({ ...state.orders, to: Number(event.target.value) })
-                  }
-                  style={{ width: "72px", padding: "var(--space-1)" }}
-                />
-              </label>
+              <details>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono)",
+                    color: "var(--chalk-2)",
+                  }}
+                >
+                  Use a cell number instead
+                </summary>
+                <label style={{ fontFamily: "var(--font-mono)" }}>
+                  Cell{" "}
+                  <input
+                    type="number"
+                    min={0}
+                    max={119}
+                    value={state.orders.to}
+                    disabled={state.phase !== "planning"}
+                    onChange={(event) =>
+                      void daily.setOrders({ ...state.orders, to: Number(event.target.value) })
+                    }
+                    style={{ width: "72px", padding: "var(--space-1)" }}
+                  />
+                </label>
+              </details>
               {huntedThisWatch || forcedHunted ? (
                 <Notice tone="warning">
                   You've hunted this watch. Next watch in {countdown(secondsLeft)}.
@@ -368,32 +436,17 @@ export function MostWanted() {
               context={{ address: daily.address ?? undefined }}
               action={
                 <Button type="button" onClick={daily.retry}>
-                  Retry this step
+                  Try again
                 </Button>
               }
             />
-          ) : null}
-          {daily.errorKey === null && daily.message !== "" ? (
+          ) : daily.message !== "" ? (
             <p role="alert" style={{ color: "var(--grease)" }}>
               {daily.message}
             </p>
           ) : null}
-          {state.error !== null ? (
-            <Notice
-              tone="error"
-              kind={state.error.kind}
-              action={
-                <Button type="button" onClick={daily.retry}>
-                  Retry
-                </Button>
-              }
-            />
-          ) : null}
         </aside>
       </div>
-      <p>
-        <Link href="/">Back to the desk</Link>
-      </p>
     </main>
   );
 }
