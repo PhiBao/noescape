@@ -116,7 +116,10 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
   }, [caseId]);
 
   if (!planning) return null;
-  const active = marks.find((mark) => mark.turn <= displayTurn && !dismissed.includes(mark.id));
+  const applicable = marks.filter(
+    (mark) => mark.turn <= displayTurn && !dismissed.includes(mark.id),
+  );
+  const active = applicable[applicable.length - 1];
   if (active === undefined) return null;
   if (firstCase !== true && dismissed.length === 0) return null;
   const activeIndex = marks.indexOf(active) + 1;
