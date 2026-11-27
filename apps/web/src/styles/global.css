@@ -432,6 +432,16 @@ footer a + a {
   border: 0;
 }
 
+.brain-scroll-hint {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .brain-scroll-hint {
+    display: block;
+  }
+}
+
 @media (max-width: 1023px) {
   .title-map {
     display: none;

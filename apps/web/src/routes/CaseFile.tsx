@@ -726,7 +726,10 @@ export function CaseFile() {
               flex: "1 1 38%",
               display: "grid",
               gap: "var(--space-4)",
+              width: mobile ? "100%" : undefined,
+              maxWidth: "100%",
               minWidth: mobile ? 0 : "340px",
+              overflowWrap: "anywhere",
             }}
           >
             <section

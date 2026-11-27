@@ -91,10 +91,10 @@ function anchorStyle(anchor: Mark["anchor"], layout: Layout): CSSProperties {
     }
     return { right: "8%", top: anchor === "search" ? "62%" : "78%" };
   }
-  if (anchor === "ada" || anchor === "stamp") {
-    return { left: "6%", top: anchor === "ada" ? "24%" : "32%" };
+  if (layout === "mobile") {
+    return { left: "50%", top: "110px", transform: "translateX(-50%)" };
   }
-  return { right: "6%", bottom: anchor === "search" ? "28%" : "10%" };
+  return {};
 }
 
 export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
@@ -116,10 +116,11 @@ export function Coach({ caseId, displayTurn, planning, layout }: CoachProps) {
   }, [caseId]);
 
   if (!planning) return null;
-  const applicable = marks.filter(
-    (mark) => mark.turn <= displayTurn && !dismissed.includes(mark.id),
-  );
-  const active = applicable[applicable.length - 1];
+  const currentMarks = marks.filter((mark) => mark.turn <= displayTurn);
+  const latestTurn = Math.max(...currentMarks.map((mark) => mark.turn));
+  const active =
+    currentMarks.find((mark) => mark.turn === latestTurn && !dismissed.includes(mark.id)) ??
+    currentMarks.filter((mark) => !dismissed.includes(mark.id)).at(-1);
   if (active === undefined) return null;
   if (firstCase !== true && dismissed.length === 0) return null;
   const activeIndex = marks.indexOf(active) + 1;

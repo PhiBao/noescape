@@ -30,7 +30,10 @@ export function BrainTable({ record, turnIndex, exitName }: BrainTableProps) {
   const matches = actual === step.chosen && cellOf(step.newPos) === next;
 
   return (
-    <section aria-label="Brain table" style={{ marginTop: "var(--space-5)" }}>
+    <section
+      aria-label="Brain table"
+      style={{ marginTop: "var(--space-5)", minWidth: 0, maxWidth: "100%" }}
+    >
       <h2>
         Why it went {directions[actual] ?? "somewhere"} at {hourOf(turnIndex)}
       </h2>
@@ -40,13 +43,26 @@ export function BrainTable({ record, turnIndex, exitName }: BrainTableProps) {
           {directions[actual] ?? "unknown"}
         </p>
       )}
-      <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%" }}>
+      <p
+        className="brain-scroll-hint"
+        style={{
+          margin: "0 0 var(--space-2)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono)",
+          color: "var(--chalk-2)",
+        }}
+      >
+        Scroll sideways for Noise and Score.
+      </p>
+      <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <table
           style={{
             width: "100%",
+            minWidth: "720px",
             borderCollapse: "collapse",
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-small)",
+            whiteSpace: "nowrap",
           }}
         >
           <thead>
