@@ -119,6 +119,18 @@ export function CaseFile() {
   const [overlayRect, setOverlayRect] = useState({ left: 0, top: 0, width: 0, height: 0 });
   const reducedMotion =
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const nightFacts = useMemo(() => {
+    if (record === null) return null;
+    let searches = 0;
+    let sightings = 0;
+    for (const turn of record.turns) {
+      for (let detective = 0; detective < 3; detective += 1) {
+        if ((turn.searchFlags & (1 << detective)) !== 0) searches += 1;
+      }
+      if (turn.report >> 2 > 0) sightings += 1;
+    }
+    return { turns: record.turns.length, searches, sightings };
+  }, [record]);
 
   useEffect(() => {
     if (!valid || caseId === null || !state.verified) return;
@@ -462,6 +474,20 @@ export function CaseFile() {
           }}
         >
           FEATURED — played by the team on Sepolia
+        </p>
+      ) : null}
+      {nightFacts !== null ? (
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono)",
+            color: "var(--chalk-2)",
+          }}
+        >
+          The night: {nightFacts.turns} turns · {nightFacts.searches} searches · {nightFacts.turns}{" "}
+          reports · {nightFacts.sightings} camera{" "}
+          {nightFacts.sightings === 1 ? "sighting" : "sightings"}. Scrub the hour bar to inspect any
+          move.
         </p>
       ) : null}
       {!state.verified && state.phase === "ended" ? (
